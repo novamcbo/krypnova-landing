@@ -18,43 +18,28 @@ const contactEmail = "PedroV@krypnova.com";
 const featureCards = [
   {
     icon: BrainCircuit,
-    title: "Intelligent Market Intelligence",
-    text: "Analyze market conditions, identify emerging opportunities, and uncover actionable insights in real time.",
-  },
-  {
-    icon: Zap,
-    title: "Automated Strategy Execution",
-    text: "Monitor markets, manage risk, and execute approved strategies with intelligent automation.",
-  },
-  {
-    icon: Sparkles,
-    title: "Adaptive Decision Engine",
-    text: "Our technology evaluates multiple market perspectives simultaneously, helping identify high-probability opportunities while filtering noise and uncertainty.",
-  },
-  {
-    icon: Target,
-    title: "Portfolio Intelligence",
-    text: "Gain a deeper understanding of portfolio performance, diversification, and risk exposure.",
+    title: "AI-Powered Analysis",
+    text: "Advanced models scan market structure, momentum, volatility, and risk signals in real time.",
   },
   {
     icon: Globe2,
-    title: "Multi-Market Coverage",
-    text: "Track and analyze opportunities across crypto, equities, forex, and futures from a unified platform.",
+    title: "Multi-Market Access",
+    text: "Analyze crypto and stocks from one unified intelligence layer.",
   },
   {
     icon: ShieldCheck,
-    title: "Advanced Risk Controls",
-    text: "Protect capital with institutional-grade risk monitoring, adaptive controls, and exposure management.",
+    title: "Risk Management",
+    text: "Institutional-grade risk controls designed to protect capital before chasing returns.",
   },
   {
     icon: Zap,
-    title: "Real-Time Signals & Alerts",
-    text: "Receive timely insights and alerts designed to help you react faster to changing market conditions.",
+    title: "Real-Time Signals",
+    text: "Actionable market insights, alerts, and trading context when seconds matter.",
   },
   {
     icon: Lock,
-    title: "Enterprise-Grade Security",
-    text: "Built with a security-first architecture to protect sensitive financial data and workflows.",
+    title: "Secure & Reliable",
+    text: "Built with a security-first mindset for sensitive financial workflows.",
   },
 ];
 
@@ -76,14 +61,14 @@ export default function Page() {
           <a href="#product">Product</a>
           <a href="#features">Features</a>
           <a href="#integrations">Integrations</a>
+          <a href="#pricing">Pricing</a>
           <a href="#roadmap">Roadmap</a>
-          <a href="#pricing">Waitlist</a>
           <a href={`mailto:${contactEmail}`}>Contact</a>
         </div>
 
         <div className="navActions">
           <a href="#login" className="login">Login</a>
-          <a href="#pricing" className="button small">
+          <a href={`mailto:${contactEmail}?subject=Krypnova Waitlist`} className="button small">
             Join Waitlist <ArrowRight size={16} />
           </a>
         </div>
@@ -93,25 +78,23 @@ export default function Page() {
         <div className="heroCopy">
           <div className="pill">
             <Sparkles size={16} />
-            AI-Powered Market Intelligence
+            AI-Powered Trading Intelligence
           </div>
 
           <h1>
             Smarter Decisions.
             <br />
-            Faster Execution.
+            Stronger Returns.
             <br />
-            <span>Built for What’s Next.</span>
+            <span>Built for What&apos;s Next.</span>
           </h1>
 
           <p className="lead">
-            Krypnova continuously analyzes market conditions, identifies opportunities, evaluates risk,
-            and adapts to changing environments to help traders make more informed decisions across
-            crypto, equities, forex, and futures.
+            Krypnova combines institutional-grade AI, quantitative models, and real-time market data to help you trade and invest with confidence across crypto and stocks.
           </p>
 
           <div className="heroButtons">
-            <a href="#pricing" className="button">
+            <a href={`mailto:${contactEmail}?subject=Join Krypnova Waitlist`} className="button">
               Join the Waitlist <ArrowRight size={18} />
             </a>
             <a href={`mailto:${contactEmail}?subject=Request Krypnova Demo`} className="button outline">
@@ -133,7 +116,7 @@ export default function Page() {
               <span><Check size={16} /> Real-Time Data</span>
               <span><Check size={16} /> Secure Connections</span>
               <span><Check size={16} /> Unified Portfolio</span>
-              <span><Check size={16} /> Automated Monitoring</span>
+              <span><Check size={16} /> 24/7 Monitoring</span>
             </div>
           </div>
         </div>
@@ -148,9 +131,7 @@ export default function Page() {
             <p className="eyebrow">AI Copilot</p>
             <h2>Analyze Any Symbol in Seconds. Get Insights. Get an Edge.</h2>
             <p>
-              Krypnova’s AI Copilot evaluates market conditions, identifies emerging opportunities,
-              assesses risk, and delivers actionable insights in seconds to help traders stay ahead
-              of changing market dynamics.
+              Our AI Copilot scans any crypto or stock symbol in seconds, analyzes market conditions, and suggests high-probability opportunities with clear reasoning.
             </p>
           </div>
         </div>
@@ -196,84 +177,14 @@ export default function Page() {
         ))}
       </section>
 
-      <section className="valueProp">
-        <p className="eyebrow">From Insight to Action</p>
-        <h2>Transform Market Intelligence Into Strategy-Driven Execution</h2>
-        <p>
-          Transform insights into action with intelligent automation designed to monitor markets,
-          manage risk, and execute approved strategies.
-        </p>
-      </section>
-
-      <section className="roadmap" id="roadmap">
-        <div className="sectionHeader">
-          <p className="eyebrow">Roadmap</p>
-          <h2>Building the Future of AI-Powered Trading</h2>
-          <p>
-            Our roadmap focuses on delivering institutional-grade intelligence, automated execution,
-            portfolio optimization, and next-generation trading tools.
-          </p>
-        </div>
-
-        <div className="roadmapGrid">
-          <article>
-            <span>Q3 2026</span>
-            <h3>Beta Release</h3>
-            <p>
-              Initial platform launch with AI Copilot, market intelligence, portfolio tracking,
-              and real-time signal generation.
-            </p>
-          </article>
-
-          <article>
-            <span>Q4 2026</span>
-            <h3>Automated Strategy Execution</h3>
-            <p>
-              Strategy-driven execution workflows with risk controls, user permissions,
-              and continuous market monitoring.
-            </p>
-          </article>
-
-          <article>
-            <span>Q1 2027</span>
-            <h3>Portfolio Optimizer & Risk Intelligence</h3>
-            <p>
-              Portfolio construction, diversification, risk-adjusted allocation,
-              and intelligent optimization tools.
-            </p>
-          </article>
-
-          <article>
-            <span>Q2 2027</span>
-            <h3>Mobile App & AI Copilot</h3>
-            <p>
-              Native iOS and Android applications with real-time alerts, portfolio monitoring,
-              and AI Copilot access on the go.
-            </p>
-          </article>
-        </div>
-      </section>
-
       <section className="waitlist" id="pricing">
         <div className="mailIcon"><Mail size={32} /></div>
         <div>
-          <h2>Be the first to experience the future of AI-powered trading.</h2>
-          <p>Join our waitlist and get early access to Krypnova’s intelligent market platform.</p>
+          <h2>Be the first to experience the future of trading.</h2>
+          <p>Join our waitlist and get early access.</p>
         </div>
 
         <LeadForm />
-      </section>
-
-      <section className="disclaimer">
-        <h3>Disclaimer</h3>
-        <p>
-          Krypnova is not a financial advisor, broker-dealer, investment firm, or registered investment adviser.
-          All information, analytics, signals, AI-generated insights, and platform features are provided for
-          informational and educational purposes only and should not be considered financial, investment,
-          trading, tax, or legal advice. Trading cryptocurrencies, stocks, options, forex, and futures involves
-          substantial risk, including the possible loss of capital. Users are solely responsible for their own
-          trading and investment decisions. Past performance does not guarantee future results.
-        </p>
       </section>
 
       <footer>
