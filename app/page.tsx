@@ -11,7 +11,9 @@ import {
   Target,
   Zap,
 } from "lucide-react";
+import { FaInstagram, FaTiktok } from "react-icons/fa";
 import LeadForm from "./components/LeadForm";
+import RiskDisclosureModal from "./components/RiskDisclosureModal";
 
 const contactEmail = "PedroV@krypnova.com";
 
@@ -264,26 +266,39 @@ export default function Page() {
         <LeadForm />
       </section>
 
-      <section className="disclaimer">
-        <h3>Disclaimer</h3>
-        <p>
-          Krypnova is not a financial advisor, broker-dealer, investment firm, or registered investment adviser.
-          All information, analytics, signals, AI-generated insights, and platform features are provided for
-          informational and educational purposes only and should not be considered financial, investment,
-          trading, tax, or legal advice. Trading cryptocurrencies, stocks, options, forex, and futures involves
-          substantial risk, including the possible loss of capital. Users are solely responsible for their own
-          trading and investment decisions. Past performance does not guarantee future results.
-        </p>
-      </section>
-
       <footer>
         <a className="brand" href="#">
           <Image src="/krypnova-logo.jpeg" alt="Krypnova logo" width={36} height={36} />
           <span>KRYPNOVA</span>
         </a>
+
         <p>© 2026 Krypnova. All rights reserved.</p>
-        <div>
+
+        <div className="footerLinks">
           <a href={`mailto:${contactEmail}`}>Contact</a>
+
+          <a
+            href="https://www.instagram.com/krypnovaofficial"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="socialLink"
+          >
+            <FaInstagram size={18} />
+            <span>Instagram</span>
+          </a>
+
+          <a
+            href="https://www.tiktok.com/@krypnovaofficial"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="socialLink"
+          >
+            <FaTiktok size={18} />
+            <span>TikTok</span>
+          </a>
+
+          <RiskDisclosureModal />
+
           <a href="#privacy">Privacy Policy</a>
           <a href="#terms">Terms of Service</a>
         </div>
@@ -337,7 +352,7 @@ function DashboardMockup() {
           <div className="outlook">
             <strong>AI Market Outlook</strong>
             <div className="ring">78%<small>Bullish</small></div>
-            <p>AI models detect high probability upward momentum in the short term.</p>
+            <p>Krypnova detects high-probability upward momentum in the short term.</p>
           </div>
         </div>
       </div>
