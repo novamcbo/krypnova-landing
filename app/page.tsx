@@ -4,8 +4,10 @@ import {
   BrainCircuit,
   Check,
   Globe2,
+  Instagram,
   Lock,
   Mail,
+  Music2,
   ShieldCheck,
   Sparkles,
   Target,
@@ -281,6 +283,24 @@ export default function Page() {
           <Image src="/krypnova-logo.jpeg" alt="Krypnova logo" width={36} height={36} />
           <span>KRYPNOVA</span>
         </a>
+        <div className="socials">
+          <a
+            href="https://www.instagram.com/krypnovaofficial"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Krypnova on Instagram"
+          >
+            <Instagram size={18} /> @krypnovaofficial
+          </a>
+          <a
+            href="https://www.tiktok.com/@krypnovaofficial"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Krypnova on TikTok"
+          >
+            <Music2 size={18} /> @krypnovaofficial
+          </a>
+        </div>
         <p>© 2026 Krypnova. All rights reserved.</p>
         <div>
           <a href={`mailto:${contactEmail}`}>Contact</a>

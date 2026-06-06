@@ -153,3 +153,8 @@
   }
 
 }
+
+footer .socials{display:flex;gap:22px;flex-wrap:wrap}
+footer .socials a{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-weight:600;transition:color .2s ease}
+footer .socials a:hover{color:var(--text)}
+footer .socials a svg{color:var(--blue)}
