@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import LeadForm from "./components/LeadForm";
+import DisclaimerModal from "./components/DisclaimerModal";
 
 const contactEmail = "PedroV@krypnova.com";
 
@@ -264,18 +265,6 @@ export default function Page() {
         <LeadForm />
       </section>
 
-      <section className="disclaimer">
-        <h3>Disclaimer</h3>
-        <p>
-          Krypnova is not a financial advisor, broker-dealer, investment firm, or registered investment adviser.
-          All information, analytics, signals, AI-generated insights, and platform features are provided for
-          informational and educational purposes only and should not be considered financial, investment,
-          trading, tax, or legal advice. Trading cryptocurrencies, stocks, options, forex, and futures involves
-          substantial risk, including the possible loss of capital. Users are solely responsible for their own
-          trading and investment decisions. Past performance does not guarantee future results.
-        </p>
-      </section>
-
       <footer>
         <a className="brand" href="#">
           <Image src="/krypnova-logo.jpeg" alt="Krypnova logo" width={36} height={36} />
@@ -286,6 +275,7 @@ export default function Page() {
           <a href={`mailto:${contactEmail}`}>Contact</a>
           <a href="#privacy">Privacy Policy</a>
           <a href="#terms">Terms of Service</a>
+          <DisclaimerModal />
         </div>
       </footer>
     </main>
