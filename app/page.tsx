@@ -20,43 +20,43 @@ const contactEmail = "PedroV@krypnova.com";
 const featureCards = [
   {
     icon: BrainCircuit,
-    title: "Intelligent Market Intelligence",
-    text: "Analyze market conditions, identify emerging opportunities, and uncover actionable insights in real time.",
-  },
-  {
-    icon: Zap,
-    title: "Automated Strategy Execution",
-    text: "Monitor markets, manage risk, and execute approved strategies with intelligent automation.",
-  },
-  {
-    icon: Sparkles,
-    title: "Adaptive Decision Engine",
-    text: "Our technology evaluates multiple market perspectives simultaneously, helping identify high-probability opportunities while filtering noise and uncertainty.",
+    title: "Market Intelligence",
+    text: "Monitor market conditions across multiple asset classes.",
   },
   {
     icon: Target,
-    title: "Portfolio Intelligence",
-    text: "Gain a deeper understanding of portfolio performance, diversification, and risk exposure.",
+    title: "Opportunity Discovery",
+    text: "Identify emerging opportunities before they become obvious.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Risk Intelligence",
+    text: "Understand exposure, drawdowns, and portfolio risk.",
+  },
+  {
+    icon: Sparkles,
+    title: "AI Copilot",
+    text: "Receive explanations, insights, and decision support.",
+  },
+  {
+    icon: Zap,
+    title: "Portfolio Analytics",
+    text: "Track performance and portfolio health in real time.",
   },
   {
     icon: Globe2,
     title: "Multi-Market Coverage",
-    text: "Track and analyze opportunities across crypto, equities, forex, and futures from a unified platform.",
+    text: "Analyze crypto, stocks, forex, and futures from one platform.",
   },
   {
-    icon: ShieldCheck,
-    title: "Advanced Risk Controls",
-    text: "Protect capital with institutional-grade risk monitoring, adaptive controls, and exposure management.",
-  },
-  {
-    icon: Zap,
-    title: "Real-Time Signals & Alerts",
-    text: "Receive timely insights and alerts designed to help you react faster to changing market conditions.",
+    icon: BrainCircuit,
+    title: "How Krypnova Thinks",
+    text: "Multiple AI systems work together to evaluate markets from different perspectives.",
   },
   {
     icon: Lock,
     title: "Enterprise-Grade Security",
-    text: "Built with a security-first architecture to protect sensitive financial data and workflows.",
+    text: "Built with a security-first architecture to help protect sensitive financial data and workflows.",
   },
 ];
 
@@ -99,22 +99,21 @@ export default function Page() {
           </div>
 
           <h1>
-            Smarter Decisions.
+            Understand Markets.
             <br />
-            Faster Execution.
+            Manage Risk.
             <br />
-            <span>Built for What’s Next.</span>
+            <span>Invest With Confidence.</span>
           </h1>
 
           <p className="lead">
-            Krypnova continuously analyzes market conditions, identifies opportunities, evaluates risk,
-            and adapts to changing environments to help traders make more informed decisions across
-            crypto, equities, forex, and futures.
+            Krypnova combines artificial intelligence, market intelligence, and risk analysis to help
+            investors make smarter decisions across crypto, stocks, forex, and futures.
           </p>
 
           <div className="heroButtons">
             <a href="#pricing" className="button">
-              Join the Waitlist <ArrowRight size={18} />
+              Join Waitlist <ArrowRight size={18} />
             </a>
             <a href={`mailto:${contactEmail}?subject=Request Krypnova Demo`} className="button outline">
               Request a Demo
@@ -122,20 +121,20 @@ export default function Page() {
           </div>
 
           <div className="integrations" id="integrations">
-            <p>Connected to global markets <span /></p>
+            <p>Early Access • Founding Members • Platform Updates <span /></p>
             <div className="marketTabs">
               <strong>Crypto</strong><i /><strong>Stocks</strong>
             </div>
             <div className="marketLogos">
-              <div className="marketLogo purple"><span />kraken</div>
-              <div className="marketLogo blue"><span />coinbase</div>
-              <div className="marketLogo green"><span />alpaca</div>
+              <div className="marketLogo purple"><span />AI Confidence 89%</div>
+              <div className="marketLogo blue"><span />Risk Intelligence</div>
+              <div className="marketLogo green"><span />Markets 24/7</div>
             </div>
             <div className="trustLine">
-              <span><Check size={16} /> Real-Time Data</span>
-              <span><Check size={16} /> Secure Connections</span>
-              <span><Check size={16} /> Unified Portfolio</span>
-              <span><Check size={16} /> Automated Monitoring</span>
+              <span><Check size={16} /> Market Conditions</span>
+              <span><Check size={16} /> Risk Environment</span>
+              <span><Check size={16} /> Opportunities</span>
+              <span><Check size={16} /> Portfolio Exposure</span>
             </div>
           </div>
         </div>
@@ -147,44 +146,51 @@ export default function Page() {
         <div className="copilotIntro">
           <div className="copilotIcon"><BrainCircuit size={46} /></div>
           <div>
-            <p className="eyebrow">AI Copilot</p>
-            <h2>Analyze Any Symbol in Seconds. Get Insights. Get an Edge.</h2>
+            <p className="eyebrow">Why We Built Krypnova</p>
+            <h2>The challenge is not finding information. The challenge is knowing what matters.</h2>
             <p>
-              Krypnova’s AI Copilot evaluates market conditions, identifies emerging opportunities,
-              assesses risk, and delivers actionable insights in seconds to help traders stay ahead
-              of changing market dynamics.
+              Markets produce more information than any investor can process. News. Price action.
+              Volume. Sentiment. Macro events. Krypnova was built to help investors identify
+              opportunities, understand risk, and gain visibility into changing market conditions.
+              Not by replacing human judgment, but by enhancing it.
             </p>
           </div>
         </div>
 
         <div className="symbolBox">
-          <label>Analyze any symbol...</label>
+          <label>Intelligence Before Execution</label>
           <div className="symbols">
             {symbols.map((symbol) => <span key={symbol}>{symbol}</span>)}
             <button>Analyze</button>
           </div>
 
           <div className="miniBenefits">
-            <span><Target size={18} /> Any Symbol</span>
-            <span><Zap size={18} /> Seconds</span>
-            <span><BrainCircuit size={18} /> Smart Insights</span>
-            <span><Sparkles size={18} /> Actionable Edge</span>
+            <span><Target size={18} /> Market Conditions</span>
+            <span><Zap size={18} /> Risk Environment</span>
+            <span><BrainCircuit size={18} /> Opportunity Strength</span>
+            <span><Sparkles size={18} /> Portfolio Exposure</span>
           </div>
         </div>
 
         <div className="copilotResult">
           <div>
-            <p>AI Copilot Example</p>
-            <strong>SOL/USDT</strong>
-            <small>High probability opportunity</small>
+            <p>How Krypnova Thinks</p>
+            <strong>Multiple AI systems working together</strong>
+            <small>
+              To help investors understand markets, identify opportunities, and manage risk.
+            </small>
           </div>
-          <b>Bullish</b>
+
+          <b>AI Confidence 89%</b>
+
           <ul>
-            <li><Check size={15} /> Strong momentum detected</li>
-            <li><Check size={15} /> Increasing volume</li>
-            <li><Check size={15} /> Favorable risk/reward</li>
+            <li><Check size={15} /> Market Conditions Monitored</li>
+            <li><Check size={15} /> Risk Environment Analyzed</li>
+            <li><Check size={15} /> Opportunity Strength Evaluated</li>
+            <li><Check size={15} /> Portfolio Exposure Tracked</li>
           </ul>
-          <span>Suggested Action: Consider Long</span>
+
+          <span>Better intelligence. Better decisions.</span>
         </div>
       </section>
 
@@ -199,68 +205,105 @@ export default function Page() {
       </section>
 
       <section className="valueProp">
-        <p className="eyebrow">From Insight to Action</p>
-        <h2>Transform Market Intelligence Into Strategy-Driven Execution</h2>
+        <p className="eyebrow">Intelligence Before Execution</p>
+        <h2>Every investment decision starts with understanding what is happening.</h2>
         <p>
-          Transform insights into action with intelligent automation designed to monitor markets,
-          manage risk, and execute approved strategies.
+          Before entering a position, investors need clarity. Krypnova continuously evaluates market
+          conditions, risk environment, opportunity strength, portfolio exposure, cross-market
+          relationships, and emerging trends to help investors act with greater confidence and discipline.
+        </p>
+      </section>
+
+      <section className="valueProp">
+        <p className="eyebrow">How Krypnova Thinks</p>
+        <h2>
+          Multiple AI systems working together to help investors understand markets, identify
+          opportunities, and manage risk.
+        </h2>
+        <p>
+          Markets are complex. No single model can explain everything. That&apos;s why Krypnova
+          evaluates market conditions from multiple perspectives at the same time. Our AI systems
+          analyze momentum, volatility, risk, market structure, and emerging opportunities to help
+          investors focus on what matters most. The goal isn&apos;t to replace human judgment. The
+          goal is to help investors make better decisions with better intelligence.
         </p>
       </section>
 
       <section className="roadmap" id="roadmap">
         <div className="sectionHeader">
           <p className="eyebrow">Roadmap</p>
-          <h2>Building the Future of AI-Powered Trading</h2>
+          <h2>Building the Future of Intelligent Investing</h2>
           <p>
-            Our roadmap focuses on delivering institutional-grade intelligence, automated execution,
-            portfolio optimization, and next-generation trading tools.
+            Our roadmap focuses on market intelligence, decision support, portfolio intelligence,
+            mobile access, and institutional-grade capabilities.
           </p>
         </div>
 
         <div className="roadmapGrid">
           <article>
             <span>Q3 2026</span>
-            <h3>Beta Release</h3>
+            <h3>Market Intelligence Platform</h3>
             <p>
-              Initial platform launch with AI Copilot, market intelligence, portfolio tracking,
-              and real-time signal generation.
+              Beta release of Krypnova&apos;s core platform with AI Copilot, market intelligence,
+              portfolio tracking, and real-time monitoring.
             </p>
           </article>
 
           <article>
             <span>Q4 2026</span>
-            <h3>Automated Strategy Execution</h3>
+            <h3>Decision Support & Automation</h3>
             <p>
-              Strategy-driven execution workflows with risk controls, user permissions,
-              and continuous market monitoring.
+              Expanded intelligence tools, automated workflows, decision support, and enhanced risk
+              management capabilities.
             </p>
           </article>
 
           <article>
             <span>Q1 2027</span>
-            <h3>Portfolio Optimizer & Risk Intelligence</h3>
+            <h3>Portfolio Intelligence</h3>
             <p>
-              Portfolio construction, diversification, risk-adjusted allocation,
-              and intelligent optimization tools.
+              Portfolio optimization, diversification analysis, exposure monitoring, and advanced risk
+              assessment.
             </p>
           </article>
 
           <article>
             <span>Q2 2027</span>
-            <h3>Mobile App & AI Copilot</h3>
+            <h3>Mobile Experience</h3>
             <p>
-              Native iOS and Android applications with real-time alerts, portfolio monitoring,
-              and AI Copilot access on the go.
+              Native mobile applications with real-time alerts, portfolio monitoring, and AI Copilot
+              access anywhere.
+            </p>
+          </article>
+
+          <article>
+            <span>Q3 2027</span>
+            <h3>Institutional Suite</h3>
+            <p>
+              Advanced reporting, multi-account intelligence, deeper risk controls, and institutional
+              analytics.
             </p>
           </article>
         </div>
       </section>
 
+      <section className="valueProp">
+        <p className="eyebrow">Our Mission</p>
+        <h2>The future belongs to investors who can turn information into intelligence.</h2>
+        <p>
+          Our mission is simple: help investors better understand markets, identify opportunities,
+          manage risk intelligently, and make better decisions. That&apos;s Krypnova.
+        </p>
+      </section>
+
       <section className="waitlist" id="pricing">
         <div className="mailIcon"><Mail size={32} /></div>
         <div>
-          <h2>Be the first to experience the future of AI-powered trading.</h2>
-          <p>Join our waitlist and get early access to Krypnova’s intelligent market platform.</p>
+          <h2>Be Among the First to Experience Krypnova.</h2>
+          <p>
+            Join the waitlist to receive priority access, early feature releases, platform development
+            updates, exclusive market insights, and founding member status.
+          </p>
         </div>
 
         <LeadForm />
@@ -315,7 +358,7 @@ function DashboardMockup() {
           <Image src="/krypnova-logo.jpeg" alt="" width={28} height={28} />
           <strong>KRYPNOVA</strong>
         </div>
-        {["Overview", "Markets", "Portfolio", "Signals", "AI Copilot", "Backtesting", "Risk Management", "Settings"].map((item, index) => (
+        {["Overview", "Markets", "Portfolio", "AI Copilot", "Risk", "Reports", "Settings"].map((item, index) => (
           <span className={index === 0 ? "active" : ""} key={item}>{item}</span>
         ))}
       </aside>
@@ -327,15 +370,15 @@ function DashboardMockup() {
         </div>
 
         <div className="metrics">
-          <Metric label="Total Portfolio" value="$2,842,621" change="+8.45% (24h)" />
-          <Metric label="Total Return" value="$842.65" change="+12.35% (24h)" />
-          <Metric label="Sharpe Ratio" value="2.35" change="+0.15 (30d)" />
-          <Metric label="Win Rate" value="68.4%" change="+3.2% (30d)" />
+          <Metric label="Portfolio Value" value="$2.84M" change="+12.4%" />
+          <Metric label="AI Confidence" value="89%" change="High" />
+          <Metric label="Risk Score" value="42 / 100" change="Moderate" />
+          <Metric label="Markets Monitored" value="24/7" change="Crypto • Stocks • Forex" />
         </div>
 
         <div className="chartCard">
           <div className="chartTop">
-            <strong>Performance</strong>
+            <strong>Market Intelligence</strong>
             <small>All Assets</small>
           </div>
           <div className="chartLine" />
@@ -343,16 +386,16 @@ function DashboardMockup() {
 
         <div className="bottomDash">
           <div className="signals">
-            <strong>Top Signals</strong>
+            <strong>Market Signals</strong>
             {["BTC/USDT", "AAPL", "TSLA", "NVDA"].map((s, i) => (
-              <p key={s}><span>{s}</span><em>Long</em><b>+{[12.45, 8.32, 6.18, 5.28][i]}%</b></p>
+              <p key={s}><span>{s}</span><em>Watch</em><b>+{[12.45, 8.32, 6.18, 5.28][i]}%</b></p>
             ))}
           </div>
 
           <div className="outlook">
             <strong>AI Market Outlook</strong>
             <div className="ring">78%<small>Bullish</small></div>
-            <p>Krypnova detects high-probability upward momentum in the short term.</p>
+            <p>Krypnova detects improving momentum while market risk remains moderate.</p>
           </div>
         </div>
       </div>
