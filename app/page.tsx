@@ -14,6 +14,8 @@ import {
 import { FaInstagram, FaTiktok } from "react-icons/fa";
 import LeadForm from "./components/LeadForm";
 import RiskDisclosureModal from "./components/RiskDisclosureModal";
+import PrivacyPolicyModal from "./components/PrivacyPolicyModal";
+import TermsOfServiceModal from "./components/TermsOfServiceModal";
 
 const contactEmail = "PedroV@krypnova.com";
 
@@ -359,9 +361,8 @@ export default function Page() {
           </a>
 
           <RiskDisclosureModal />
-
-          <a href="#privacy">Privacy Policy</a>
-          <a href="#terms">Terms of Service</a>
+          <PrivacyPolicyModal />
+          <TermsOfServiceModal />
         </div>
       </footer>
     </main>
