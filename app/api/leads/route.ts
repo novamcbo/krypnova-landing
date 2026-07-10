@@ -1,4 +1,3 @@
-```ts
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { pool } from "@/lib/db";
@@ -95,43 +94,45 @@ export async function POST(request: Request) {
 
     const result = await pool.query(
       `
-      insert into leads
-  (
-    first_name,
-    last_name,
-    email,
-    phone,
-    company,
-    job_title,
-    country,
-    trading_experience,
-    markets,
-    trading_styles,
-    portfolio_size,
-    main_goal,
-    source,
-    ip_address,
-    user_agent
-  )
-values
-  ($1, $2, $3, $4, $5, $6, $7, $8, $9:: text[], $10:: text[], $11, $12, 'krypnova_landing', $13, $14)
-      on conflict(email)
-do update set
-        first_name = excluded.first_name,
-  last_name = excluded.last_name,
-  phone = excluded.phone,
-  company = excluded.company,
-  job_title = excluded.job_title,
-  country = excluded.country,
-  trading_experience = excluded.trading_experience,
-  markets = excluded.markets,
-  trading_styles = excluded.trading_styles,
-  portfolio_size = excluded.portfolio_size,
-  main_goal = excluded.main_goal,
-  user_agent = excluded.user_agent,
-  updated_at = now()
-      returning id, created_at, updated_at
-  `,
+      INSERT INTO leads (
+        first_name,
+        last_name,
+        email,
+        phone,
+        company,
+        job_title,
+        country,
+        trading_experience,
+        markets,
+        trading_styles,
+        portfolio_size,
+        main_goal,
+        source,
+        ip_address,
+        user_agent
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8,
+        $9::text[], $10::text[], $11, $12,
+        'krypnova_landing', $13, $14
+      )
+      ON CONFLICT (email)
+      DO UPDATE SET
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        phone = EXCLUDED.phone,
+        company = EXCLUDED.company,
+        job_title = EXCLUDED.job_title,
+        country = EXCLUDED.country,
+        trading_experience = EXCLUDED.trading_experience,
+        markets = EXCLUDED.markets,
+        trading_styles = EXCLUDED.trading_styles,
+        portfolio_size = EXCLUDED.portfolio_size,
+        main_goal = EXCLUDED.main_goal,
+        user_agent = EXCLUDED.user_agent,
+        updated_at = NOW()
+      RETURNING id, created_at, updated_at
+      `,
       [
         firstName,
         lastName || null,
@@ -175,28 +176,29 @@ do update set
           from: fromEmail,
           to: [leadNotificationEmail],
           replyTo: email,
-          subject: `New Krypnova Lead: ${ firstName } ${ lastName } `.trim(),
+          subject: `New Krypnova Lead: ${firstName} ${lastName}`.trim(),
           html: `
-  < div style = "font-family:Arial,sans-serif;line-height:1.6;color:#111827" >
-    <h2>New Krypnova Lead </h2>
-      < p > A new contact joined the Krypnova waitlist.</p>
-        < table cellpadding = "8" cellspacing = "0" style = "border-collapse:collapse" >
-          <tr><td><strong>Name < /strong></td > <td>${ safeFirstName } ${ safeLastName } </td></tr >
-            <tr><td><strong>Email < /strong></td > <td>${ safeEmail } </td></tr >
-              <tr><td><strong>Phone < /strong></td > <td>${ safePhone } </td></tr >
-                <tr><td><strong>Company < /strong></td > <td>${ safeCompany } </td></tr >
-                  <tr><td><strong>Job Title < /strong></td > <td>${ safeJobTitle } </td></tr >
-                    <tr><td><strong>Country < /strong></td > <td>${ safeCountry } </td></tr >
-                      <tr><td><strong>Trading Experience < /strong></td > <td>${ safeTradingExperience } </td></tr >
-                        <tr><td><strong>Markets < /strong></td > <td>${ safeMarkets } </td></tr >
-                          <tr><td><strong>Trading Styles < /strong></td > <td>${ safeTradingStyles } </td></tr >
-                            <tr><td><strong>Portfolio Size < /strong></td > <td>${ safePortfolioSize } </td></tr >
-                              <tr><td><strong>Main Goal < /strong></td > <td>${ safeMainGoal } </td></tr >
-                                <tr><td><strong>Lead ID < /strong></td > <td>${ lead.id } </td></tr >
-                                  <tr><td><strong>Date < /strong></td > <td>${ lead.created_at } </td></tr >
-                                    </table>
-                                    </div>
-                                      `,
+            <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+              <h2>New Krypnova Lead</h2>
+              <p>A new contact joined the Krypnova waitlist.</p>
+
+              <table cellpadding="8" cellspacing="0" style="border-collapse:collapse">
+                <tr><td><strong>Name</strong></td><td>${safeFirstName} ${safeLastName}</td></tr>
+                <tr><td><strong>Email</strong></td><td>${safeEmail}</td></tr>
+                <tr><td><strong>Phone</strong></td><td>${safePhone}</td></tr>
+                <tr><td><strong>Company</strong></td><td>${safeCompany}</td></tr>
+                <tr><td><strong>Job Title</strong></td><td>${safeJobTitle}</td></tr>
+                <tr><td><strong>Country</strong></td><td>${safeCountry}</td></tr>
+                <tr><td><strong>Trading Experience</strong></td><td>${safeTradingExperience}</td></tr>
+                <tr><td><strong>Markets</strong></td><td>${safeMarkets}</td></tr>
+                <tr><td><strong>Trading Styles</strong></td><td>${safeTradingStyles}</td></tr>
+                <tr><td><strong>Portfolio Size</strong></td><td>${safePortfolioSize}</td></tr>
+                <tr><td><strong>Main Goal</strong></td><td>${safeMainGoal}</td></tr>
+                <tr><td><strong>Lead ID</strong></td><td>${lead.id}</td></tr>
+                <tr><td><strong>Date</strong></td><td>${lead.created_at}</td></tr>
+              </table>
+            </div>
+          `,
         });
 
         console.log("Lead notification result:", notificationResult);
@@ -212,15 +214,18 @@ do update set
           to: [email],
           subject: "Welcome to Krypnova",
           html: `
-                                    < div style = "font-family:Arial,sans-serif;line-height:1.6;color:#111827" >
-                                      <h2>Welcome to Krypnova </h2>
-                                        < p > Hi ${ safeFirstName }, </p>
-                                          < p > Thank you for joining the Krypnova waitlist.</p>
-                                            < p > We are building AI - powered trading intelligence for crypto and stock markets, designed to help users analyze opportunities, manage risk, and make smarter decisions.</p>
-                                              < p > We will keep you updated as early access becomes available.</p>
-                                                < p > <strong>The Krypnova Team < /strong></p >
-                                                  </div>
-                                                    `,
+            <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+              <h2>Welcome to Krypnova</h2>
+              <p>Hi ${safeFirstName},</p>
+              <p>Thank you for joining the Krypnova waitlist.</p>
+              <p>
+                We are building AI-powered trading intelligence for crypto and stock markets,
+                designed to help users analyze opportunities, manage risk, and make smarter decisions.
+              </p>
+              <p>We will keep you updated as early access becomes available.</p>
+              <p><strong>The Krypnova Team</strong></p>
+            </div>
+          `,
         });
 
         console.log("Welcome email result:", welcomeResult);
@@ -243,4 +248,3 @@ do update set
     );
   }
 }
-```
