@@ -91,7 +91,7 @@ export default function Page() {
         </div>
 
         <div className="navActions">
-          <a href="#login" className="login">Login</a>
+          <a href="https://app.krypnova.com" className="login">Login</a>
           <a href="#pricing" className="button small">
             Join Waitlist <ArrowRight size={16} />
           </a>
