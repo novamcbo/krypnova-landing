@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Lock, Sparkles } from "lucide-react";
 import type { PublicSignalsResponse } from "@/lib/signal-types";
 
 const registerUrl = "https://app.krypnova.com/register";
@@ -9,16 +9,20 @@ const registerUrl = "https://app.krypnova.com/register";
 const FALLBACK_CHIPS = ["BTC/USD", "ETH/USD", "SOL/USD", "DOGE/USD", "ADA/USD", "LINK/USD"];
 
 const CONSENT_KEY = "krypnova-analyze-consent-v1";
+const CREATOR_KEY = "krypnova-analyze-key";
 
 interface AnalyzeResult {
   allowed: boolean;
   found?: boolean;
+  counted?: boolean;
   message?: string;
   suggestions?: string[];
   symbol?: string;
   exchange?: string;
   signal?: string;
   price?: number | null;
+  marketBias?: "long" | "short" | "neutral" | null;
+  auctionState?: string | null;
   confidence?: number | null;
   expectedRoi?: number | null;
   riskReward?: number | null;
@@ -38,6 +42,20 @@ export default function AnalyzeBox() {
   useEffect(() => {
     try {
       setConsented(window.localStorage.getItem(CONSENT_KEY) === "1");
+      // One-time creator activation: /?analyzekey=TOKEN stores the key and
+      // cleans the URL.
+      const params = new URLSearchParams(window.location.search);
+      const key = params.get("analyzekey");
+      if (key) {
+        window.localStorage.setItem(CREATOR_KEY, key);
+        params.delete("analyzekey");
+        const query = params.toString();
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${query ? `?${query}` : ""}`,
+        );
+      }
     } catch {
       // storage unavailable: fall back to asking each session
     }
@@ -83,9 +101,17 @@ export default function AnalyzeBox() {
     setResult(null);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const creatorKey = window.localStorage.getItem(CREATOR_KEY);
+        if (creatorKey) headers["x-analyze-key"] = creatorKey;
+      } catch {
+        // ignore storage failures
+      }
+
       const response = await fetch("/api/public/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ symbol: trimmed }),
         cache: "no-store",
       });
@@ -112,7 +138,8 @@ export default function AnalyzeBox() {
 
   return (
     <>
-      <label htmlFor="analyze-symbol">Analyze any symbol with Exion AI — free</label>
+      <label htmlFor="analyze-symbol">Try Exion AI — Complimentary Market Assessment</label>
+      <p className="analyzeSub">One complimentary analysis every 24 hours.</p>
 
       <form className="symbols" onSubmit={onSubmit}>
         <input
@@ -130,11 +157,11 @@ export default function AnalyzeBox() {
       </form>
 
       <p className="analyzeDisclaimer">
-        <strong>Educational AI Market Assessment.</strong> Exion analyzes market
-        conditions, momentum, liquidity, and risk to help users better understand the
-        market. The information displayed is provided for educational and informational
-        purposes only and is not financial, investment, legal, or tax advice. Trading
-        and investing involve substantial risk, including the possible loss of capital.
+        <strong>Educational AI Market Assessment.</strong> Exion provides analytical
+        market intelligence for educational and informational purposes only. It does
+        not provide financial, investment, legal, or tax advice, nor a recommendation
+        to buy, sell, or hold any asset. Trading and investing involve risk, including
+        the possible loss of capital.
       </p>
 
       {pendingSymbol && !consented && (
@@ -220,7 +247,69 @@ export default function AnalyzeBox() {
           {typeof result.price === "number" && (
             <p className="analyzePrice">{formatPrice(result.price)}</p>
           )}
+
+          <div className="analyzeTiles">
+            {result.marketBias && (
+              <div className="analyzeTile">
+                <span>Market</span>
+                <strong
+                  className={
+                    result.marketBias === "long"
+                      ? "analyzeBull"
+                      : result.marketBias === "short"
+                        ? "analyzeBear"
+                        : undefined
+                  }
+                >
+                  {result.marketBias === "long"
+                    ? "Bullish"
+                    : result.marketBias === "short"
+                      ? "Bearish"
+                      : "Neutral"}
+                </strong>
+              </div>
+            )}
+            {result.auctionState && (
+              <div className="analyzeTile">
+                <span>Auction</span>
+                <strong>{prettyAuction(result.auctionState)}</strong>
+              </div>
+            )}
+            {typeof result.confidence === "number" && result.confidence > 0 && (
+              <div className="analyzeTile">
+                <span>Confidence</span>
+                <strong>{result.confidence}%</strong>
+              </div>
+            )}
+            {typeof result.expectedRoi === "number" && result.expectedRoi !== 0 && (
+              <div className="analyzeTile">
+                <span>Expected ROI</span>
+                <strong>
+                  {result.expectedRoi > 0 ? "+" : ""}
+                  {result.expectedRoi}%
+                </strong>
+              </div>
+            )}
+          </div>
+
           <p>{result.summary}</p>
+
+          <div className="analyzeLevels">
+            <p>Key Levels — members only</p>
+            <div>
+              {["Support", "Resistance", "Buy Trigger", "Risk Level"].map((level) => (
+                <span key={level}>
+                  {level} <Lock size={12} />
+                </span>
+              ))}
+            </div>
+          </div>
+          {result.counted === false && (
+            <p className="analyzeFreeNote">
+              <Sparkles size={14} /> This one was on us — your complimentary analysis
+              is still available.
+            </p>
+          )}
           <a href={registerUrl} className="button small">
             Unlock Full Signal <ArrowRight size={15} />
           </a>
@@ -248,6 +337,11 @@ function formatPair(value: string): string {
     (item) => value.endsWith(item) && value.length > item.length,
   );
   return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
+}
+
+function prettyAuction(value: string): string {
+  const text = value.replace(/_/g, " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function formatPrice(value: number): string {

@@ -152,6 +152,15 @@ function modeMatches(payload: JsonRecord, mode: "Paper" | "Live"): boolean {
 function normalizeRow(row: DecisionRow): PublicMarketSignal {
   const payload = asRecord(row.payload);
   const metadata = asRecord(payload.metadata);
+  const marketProfile = asRecord(
+    nested(metadata, "market_intelligence", "payload", "market_profile"),
+  );
+  const profileReason = String(marketProfile.reason ?? "");
+  const biasMatch = /bias=(long|short|neutral)/i.exec(profileReason);
+  const auctionState =
+    typeof marketProfile.auction_state === "string" && marketProfile.auction_state
+      ? marketProfile.auction_state
+      : null;
   const riskPayload = asRecord(
     payload.risk_payload ?? payload.risk ?? payload.risk_analysis,
   );
@@ -163,6 +172,10 @@ function normalizeRow(row: DecisionRow): PublicMarketSignal {
     exchange: displayExchange(row.exchange),
     symbol: String(row.symbol ?? "Unknown").trim().toUpperCase(),
     signal: publicAction(row.action),
+    marketBias: biasMatch
+      ? (biasMatch[1].toLowerCase() as "long" | "short" | "neutral")
+      : null,
+    auctionState,
     price: firstNumber(
       metadata.market_price,
       nested(payload, "metadata", "risk_payload", "current_price"),

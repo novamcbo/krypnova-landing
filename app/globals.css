@@ -1335,3 +1335,75 @@ footer>.footerLinks {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+.analyzeSub {
+  margin: 5px 0 0;
+  color: #8191a8;
+  font-size: 12.5px;
+}
+
+.analyzeFreeNote {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  color: #7dd3a7 !important;
+  font-size: 13px !important;
+}
+
+.analyzeTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.analyzeTile {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .03);
+}
+
+.analyzeTile span {
+  display: block;
+  color: #8191a8;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin-bottom: 3px;
+}
+
+.analyzeTile strong { font-size: 15px; }
+.analyzeBull { color: #34d399; }
+.analyzeBear { color: #fb7185; }
+
+.analyzeLevels {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px dashed rgba(135, 166, 209, .3);
+  background: rgba(255, 255, 255, .02);
+}
+
+.analyzeLevels p {
+  margin: 0 0 8px !important;
+  color: #8191a8 !important;
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+
+.analyzeLevels div { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.analyzeLevels span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(255, 255, 255, .04);
+  color: #94a3b8;
+  font-size: 12.5px;
+}

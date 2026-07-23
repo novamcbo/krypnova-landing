@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildSummary, checkQuota, recordAnalysis, visitorHash } from "@/lib/analyze";
+import {
+  buildSummary,
+  checkQuota,
+  isAssessed,
+  recordAnalysis,
+  visitorHash,
+} from "@/lib/analyze";
 import { findSymbolSignal, loadPublicSignals } from "@/lib/live-signals";
 
 export const runtime = "nodejs";
@@ -32,8 +38,16 @@ export async function POST(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") ?? "unknown";
   const hash = visitorHash(ip, userAgent);
 
+  // Creator/staff bypass: unlimited analyses with a private token.
+  const bypassToken = process.env.ANALYZE_BYPASS_TOKEN;
+  const isCreator = Boolean(
+    bypassToken && request.headers.get("x-analyze-key") === bypassToken,
+  );
+
   try {
-    const quota = await checkQuota(hash);
+    const quota = isCreator
+      ? { allowed: true, resetAt: null }
+      : await checkQuota(hash);
     if (!quota.allowed) {
       return NextResponse.json(
         {
@@ -61,16 +75,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const resetAt = await recordAnalysis(hash, signal.symbol);
+    // Only a real, scored assessment consumes the free query. Monitoring
+    // answers ("no setup yet") are free so a thin result never burns the
+    // visitor's daily analysis.
+    const assessed = isAssessed(signal);
+    const counted = !isCreator && assessed;
+    const resetAt = counted ? await recordAnalysis(hash, signal.symbol) : null;
 
     return NextResponse.json(
       {
         allowed: true,
         found: true,
+        counted,
         symbol: signal.symbol,
         exchange: signal.exchange,
         signal: signal.signal,
         price: signal.price,
+        marketBias: signal.marketBias,
+        auctionState: signal.auctionState,
         confidence: signal.confidence,
         alpha: signal.alpha,
         expectedRoi: signal.expectedRoi,

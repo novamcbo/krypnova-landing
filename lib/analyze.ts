@@ -86,15 +86,53 @@ export async function recordAnalysis(
   return new Date(Date.now() + QUOTA_WINDOW_HOURS * 3_600_000).toISOString();
 }
 
+// A signal with real conviction metrics. Bare WAIT rows with zeroed scores
+// mean Exion is watching the asset but has not scored a setup yet.
+export function isAssessed(signal: PublicMarketSignal): boolean {
+  return Boolean(signal.confidence || signal.alpha);
+}
+
+function formatPrice(value: number): string {
+  const fractionDigits = value >= 1000 ? 2 : value >= 1 ? 4 : 6;
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: fractionDigits,
+  })}`;
+}
+
+function structureSentence(signal: PublicMarketSignal): string {
+  const parts: string[] = [];
+  if (signal.marketBias) {
+    const bias =
+      signal.marketBias === "long"
+        ? "bullish"
+        : signal.marketBias === "short"
+          ? "bearish"
+          : "neutral";
+    parts.push(`order-flow bias is ${bias}`);
+  }
+  if (signal.auctionState) {
+    parts.push(`the auction is in ${signal.auctionState.replace(/_/g, " ")}`);
+  }
+  return parts.length > 0 ? ` Market structure: ${parts.join(" and ")}.` : "";
+}
+
 export function buildSummary(signal: PublicMarketSignal): string {
+  const priceClause =
+    signal.price !== null ? ` is trading at ${formatPrice(signal.price)} and` : "";
+
+  if (!isAssessed(signal)) {
+    return `${signal.symbol} (${signal.exchange})${priceClause} is on Exion AI's active watchlist, but no high-conviction setup has formed yet — protecting capital comes first.${structureSentence(signal)} Check back soon, or join Krypnova to see the full market picture the moment conditions change.`;
+  }
+
   const setup =
     signal.signal === "LONG"
       ? "a LONG opportunity"
       : signal.signal === "SHORT"
         ? "a SHORT opportunity"
         : signal.signal === "REJECT"
-          ? "conditions it currently rejects"
-          : "no actionable setup yet";
+          ? "a setup it is deliberately rejecting"
+          : "an early setup forming";
 
   const clauses: string[] = [];
   if (signal.confidence) clauses.push(`${signal.confidence}% confidence`);
@@ -111,5 +149,5 @@ export function buildSummary(signal: PublicMarketSignal): string {
       ? ` with ${clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")} and ${clauses.at(-1)}` : clauses[0]}`
       : "";
 
-  return `Exion AI sees ${setup} on ${signal.symbol} (${signal.exchange})${detail}. Full entry, exit and sizing guidance is available inside Krypnova.`;
+  return `Exion AI has identified ${setup} on ${signal.symbol} (${signal.exchange})${detail}.${structureSentence(signal)} Full entry, exit and sizing guidance is available inside Krypnova.`;
 }

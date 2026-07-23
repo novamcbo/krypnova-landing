@@ -5,6 +5,8 @@ export interface PublicMarketSignal {
   symbol: string;
   signal: PublicSignalDirection;
   price: number | null;
+  marketBias: "long" | "short" | "neutral" | null;
+  auctionState: string | null;
   confidence: number | null;
   alpha: number | null;
   expectedRoi: number | null;
