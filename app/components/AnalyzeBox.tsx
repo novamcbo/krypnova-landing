@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Gift, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Gift, Lock, Sparkles } from "lucide-react";
 import type { PublicSignalsResponse } from "@/lib/signal-types";
 
 const registerUrl = "https://app.krypnova.com/register";
@@ -213,6 +213,7 @@ export default function AnalyzeBox() {
               : " And"}{" "}
             Beta members enjoy unlimited assessments anytime.
           </p>
+          <DemoVsBeta />
           <a href={registerUrl} className="button small">
             Continue with the free Beta <ArrowRight size={15} />
           </a>
@@ -228,6 +229,10 @@ export default function AnalyzeBox() {
             <a href={registerUrl}>Krypnova Beta</a> supports a much broader market
             universe.
           </p>
+          <DemoVsBeta />
+          <a href={registerUrl} className="button small">
+            Continue with the free Beta <ArrowRight size={15} />
+          </a>
           {result.suggestions && result.suggestions.length > 0 && (
             <>
               <p className="analyzeSuggestLabel">
@@ -375,6 +380,29 @@ function formatPair(value: string): string {
     (item) => value.endsWith(item) && value.length > item.length,
   );
   return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
+}
+
+function DemoVsBeta() {
+  return (
+    <div className="analyzeCompare">
+      <div className="analyzeCompareCol">
+        <p>Public Demo</p>
+        <ul>
+          <li>• Selected live assessments</li>
+          <li>• One complimentary analysis every 24 hours</li>
+        </ul>
+      </div>
+      <div className="analyzeCompareCol analyzeCompareBeta">
+        <p>Inside Krypnova Beta</p>
+        <ul>
+          <li><Check size={14} /> Search the full supported market universe</li>
+          <li><Check size={14} /> Live AI Copilot</li>
+          <li><Check size={14} /> Full execution plans</li>
+          <li><Check size={14} /> Unlimited market assessments</li>
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 function prettyAuction(value: string): string {
