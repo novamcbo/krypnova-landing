@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { pool } from "@/lib/db";
-import type { PublicMarketSignal } from "@/lib/signal-types";
+import type { MarketSnapshot, PublicMarketSignal } from "@/lib/signal-types";
 
 const QUOTA_WINDOW_HOURS = 24;
 
@@ -115,6 +115,17 @@ function structureSentence(signal: PublicMarketSignal): string {
     parts.push(`the auction is in ${signal.auctionState.replace(/_/g, " ")}`);
   }
   return parts.length > 0 ? ` Market structure: ${parts.join(" and ")}.` : "";
+}
+
+export function buildSnapshotSummary(snapshot: MarketSnapshot): string {
+  const priceClause =
+    snapshot.price !== null ? ` is trading at ${formatPrice(snapshot.price)}` : "";
+  const moveClause =
+    snapshot.pctChange !== null
+      ? `, ${snapshot.pctChange >= 0 ? "up" : "down"} ${Math.abs(snapshot.pctChange).toFixed(2)}% today`
+      : "";
+
+  return `${snapshot.symbol} (${snapshot.exchange})${priceClause}${moveClause} — it's on Exion AI's market scanner as one of the session's most active movers. Scored setups with entries, exits and risk guidance live inside Krypnova.`;
 }
 
 export function buildSummary(signal: PublicMarketSignal): string {

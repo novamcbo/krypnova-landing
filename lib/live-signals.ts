@@ -1,5 +1,6 @@
 import { Pool, type QueryResultRow } from "pg";
 import type {
+  MarketSnapshot,
   PublicMarketSignal,
   PublicSignalDirection,
   PublicSignalStats,
@@ -330,12 +331,76 @@ export async function findSymbolSignal(
     .map((row) => normalizeRow(row));
   if (matches.length === 0) return null;
 
-  // Prefer the richest recent assessment over a bare WAIT row.
+  // Prefer rich assessments, but only while they are fresh: a stale SHORT
+  // next to today's bullish order-flow reads as a contradiction. Beyond the
+  // freshness window we fall back to the latest monitoring row.
+  const FRESH_WINDOW_MS = 4 * 3_600_000;
+  const newest = Math.max(...matches.map((m) => Date.parse(m.updatedAt)));
+  const isFresh = (m: PublicMarketSignal) =>
+    newest - Date.parse(m.updatedAt) <= FRESH_WINDOW_MS;
+
   return matches.sort((a, b) => {
+    const freshness = Number(isFresh(b)) - Number(isFresh(a));
+    if (freshness !== 0) return freshness;
     const richness = signalRichness(b) - signalRichness(a);
     if (richness !== 0) return richness;
     return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
   })[0];
+}
+
+// Fallback source when Exion has no decision event for a symbol: the
+// top-movers market scanner also covers Alpaca equities, so stock tickers
+// like TSLA resolve to live market data instead of a dead end.
+export async function findMarketSnapshot(
+  query: string,
+): Promise<MarketSnapshot | null> {
+  if (!signalsPool) {
+    throw new Error("The market intelligence database is not configured.");
+  }
+
+  const base = baseAsset(query);
+  if (!/^[A-Z0-9]{1,12}$/.test(base)) return null;
+
+  type SnapshotRow = QueryResultRow & {
+    exchange: unknown;
+    symbol: unknown;
+    asset_class: unknown;
+    last_price: unknown;
+    pct_change: unknown;
+    volume: unknown;
+    ts: unknown;
+  };
+
+  const result = await signalsPool.query<SnapshotRow>(
+    `
+      SELECT exchange, symbol, asset_class, last_price, pct_change, volume, ts
+      FROM top_movers_snapshots
+      WHERE replace(replace(upper(symbol), '-', ''), '/', '') LIKE $1
+      ORDER BY ts DESC
+      LIMIT 20
+    `,
+    [`${base}%`],
+  );
+
+  const match = result.rows.find(
+    (row) => baseAsset(String(row.symbol ?? "")) === base,
+  );
+  if (!match) return null;
+
+  const toNumber = (value: unknown): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  return {
+    symbol: String(match.symbol ?? "").trim().toUpperCase(),
+    exchange: displayExchange(match.exchange),
+    assetClass: match.asset_class ? String(match.asset_class) : null,
+    price: toNumber(match.last_price),
+    pctChange: toNumber(match.pct_change),
+    volume: toNumber(match.volume),
+    updatedAt: new Date(String(match.ts)).toISOString(),
+  };
 }
 
 export async function loadSignalStats(options?: {

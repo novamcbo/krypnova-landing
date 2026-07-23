@@ -26,8 +26,11 @@ interface AnalyzeResult {
   confidence?: number | null;
   expectedRoi?: number | null;
   riskReward?: number | null;
+  todayChange?: number | null;
+  volume?: number | null;
   summary?: string;
   resetAt?: string | null;
+  updatedAt?: string;
 }
 
 export default function AnalyzeBox() {
@@ -244,7 +247,10 @@ export default function AnalyzeBox() {
           <div className="analyzeResultTop">
             <div>
               <strong>{formatPair(result.symbol ?? "")}</strong>
-              <small>{result.exchange} · Paper mode</small>
+              <small>
+                {result.exchange} · Paper mode
+                {result.updatedAt ? ` · as of ${formatAgo(result.updatedAt)}` : ""}
+              </small>
             </div>
             <b className={`analyzeSignal analyze${result.signal}`}>{result.signal}</b>
           </div>
@@ -291,6 +297,23 @@ export default function AnalyzeBox() {
                 <strong>
                   {result.expectedRoi > 0 ? "+" : ""}
                   {result.expectedRoi}%
+                </strong>
+              </div>
+            )}
+            {typeof result.todayChange === "number" && (
+              <div className="analyzeTile">
+                <span>Today</span>
+                <strong className={result.todayChange >= 0 ? "analyzeBull" : "analyzeBear"}>
+                  {result.todayChange >= 0 ? "+" : ""}
+                  {result.todayChange.toFixed(2)}%
+                </strong>
+              </div>
+            )}
+            {typeof result.volume === "number" && result.volume > 0 && (
+              <div className="analyzeTile">
+                <span>Volume</span>
+                <strong>
+                  {new Intl.NumberFormat("en", { notation: "compact" }).format(result.volume)}
                 </strong>
               </div>
             )}
@@ -354,6 +377,17 @@ function formatPrice(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: fractionDigits,
   })}`;
+}
+
+function formatAgo(value: string): string {
+  const ms = Date.now() - new Date(value).getTime();
+  if (Number.isNaN(ms) || ms < 0) return "just now";
+  const minutes = Math.round(ms / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
 }
 
 function formatReset(value: string): string {

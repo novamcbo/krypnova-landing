@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  buildSnapshotSummary,
   buildSummary,
   checkQuota,
   isAssessed,
   recordAnalysis,
   visitorHash,
 } from "@/lib/analyze";
-import { findSymbolSignal, loadPublicSignals } from "@/lib/live-signals";
+import {
+  findMarketSnapshot,
+  findSymbolSignal,
+  loadPublicSignals,
+} from "@/lib/live-signals";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,9 +65,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const signal = await findSymbolSignal(symbol);
+    let signal = await findSymbolSignal(symbol);
 
     if (!signal) {
+      // No scored decision yet (common for equities): fall back to the
+      // top-movers market scanner so tickers like TSLA still resolve.
+      const snapshot = await findMarketSnapshot(symbol);
+      if (snapshot) {
+        return NextResponse.json(
+          {
+            allowed: true,
+            found: true,
+            counted: false,
+            kind: "snapshot",
+            symbol: snapshot.symbol,
+            exchange: snapshot.exchange,
+            signal: "WATCH",
+            price: snapshot.price,
+            todayChange: snapshot.pctChange,
+            volume: snapshot.volume,
+            updatedAt: snapshot.updatedAt,
+            mode: "Paper",
+            summary: buildSnapshotSummary(snapshot),
+          },
+          { status: 200, headers: { "Cache-Control": "no-store" } },
+        );
+      }
+
       // Do not burn the visitor's free query on a miss.
       const available = await loadPublicSignals({ limit: 4 });
       return NextResponse.json(
@@ -74,6 +103,15 @@ export async function POST(request: NextRequest) {
         },
         { status: 200, headers: { "Cache-Control": "no-store" } },
       );
+    }
+
+    // A directional call next to a contradicting order-flow bias reads as an
+    // error to visitors — suppress the structure context in that case.
+    if (
+      (signal.signal === "SHORT" && signal.marketBias === "long") ||
+      (signal.signal === "LONG" && signal.marketBias === "short")
+    ) {
+      signal = { ...signal, marketBias: null, auctionState: null };
     }
 
     // Only a real, scored assessment consumes the free query. Monitoring

@@ -15,6 +15,16 @@ export interface PublicMarketSignal {
   updatedAt: string;
 }
 
+export interface MarketSnapshot {
+  symbol: string;
+  exchange: string;
+  assetClass: string | null;
+  price: number | null;
+  pctChange: number | null;
+  volume: number | null;
+  updatedAt: string;
+}
+
 export interface PublicSignalStats {
   decisionsLast24h: number;
   assetsMonitored: number;
