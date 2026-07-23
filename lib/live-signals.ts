@@ -261,6 +261,70 @@ function signalRichness(signal: PublicMarketSignal): number {
   return score;
 }
 
+const QUOTE_SUFFIXES = ["USDT", "USDC", "ZUSD", "USD", "EUR", "GBP", "PERP"];
+
+const BASE_ALIASES: Record<string, string> = {
+  XBT: "BTC",
+  XDG: "DOGE",
+};
+
+// Reduce any pair notation (BTC-USD, XXBTZUSD, ETH/USD, SUIUSD) to its base
+// asset so a visitor's "btc" can match every exchange's naming scheme.
+export function baseAsset(symbol: string): string {
+  let value = symbol.toUpperCase().replace(/[/\-_:]/g, "").trim();
+  const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
+  if (kraken) value = kraken[1] + kraken[2];
+  for (const quote of QUOTE_SUFFIXES) {
+    if (value.endsWith(quote) && value.length > quote.length) {
+      value = value.slice(0, -quote.length);
+      break;
+    }
+  }
+  return BASE_ALIASES[value] ?? value;
+}
+
+export async function findSymbolSignal(
+  query: string,
+): Promise<PublicMarketSignal | null> {
+  if (!signalsPool) {
+    throw new Error("The market intelligence database is not configured.");
+  }
+
+  const base = baseAsset(query);
+  if (!/^[A-Z0-9]{2,12}$/.test(base)) return null;
+
+  const aliases = [base];
+  for (const [alias, canonical] of Object.entries(BASE_ALIASES)) {
+    if (canonical === base) aliases.push(alias);
+  }
+  const patterns = aliases.map((alias) => `%${alias}%`);
+
+  const userId = process.env.PUBLIC_SIGNALS_USER_ID ?? "";
+  const result = await signalsPool.query<DecisionRow>(
+    `
+      SELECT exchange, symbol, action, payload, ts
+      FROM krypnova_decision_events
+      WHERE ($1 = '' OR user_id = $1)
+        AND replace(replace(upper(symbol), '-', ''), '/', '') LIKE ANY($2::text[])
+      ORDER BY ts DESC
+      LIMIT 40
+    `,
+    [userId, patterns],
+  );
+
+  const matches = result.rows
+    .filter((row) => baseAsset(String(row.symbol ?? "")) === base)
+    .map((row) => normalizeRow(row));
+  if (matches.length === 0) return null;
+
+  // Prefer the richest recent assessment over a bare WAIT row.
+  return matches.sort((a, b) => {
+    const richness = signalRichness(b) - signalRichness(a);
+    if (richness !== 0) return richness;
+    return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+  })[0];
+}
+
 export async function loadSignalStats(options?: {
   userId?: string;
 }): Promise<PublicSignalStats> {

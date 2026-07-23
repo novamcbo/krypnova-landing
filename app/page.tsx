@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { FaInstagram, FaTiktok } from "react-icons/fa";
+import AnalyzeBox from "./components/AnalyzeBox";
 import RiskDisclosureModal from "./components/RiskDisclosureModal";
 import PrivacyPolicyModal from "./components/PrivacyPolicyModal";
 import TermsOfServiceModal from "./components/TermsOfServiceModal";
@@ -31,8 +32,6 @@ const featureCards = [
   { icon: Target, title: "Portfolio Intelligence", text: "Track portfolio health, performance, concentration and exposure in one place." },
   { icon: Lock, title: "Security-First", text: "Built with a security-first architecture for sensitive financial data and workflows." },
 ];
-
-const symbols = ["BTC/USDT", "AAPL", "TSLA", "ETH/USDT", "NVDA", "SPY"];
 
 export default function Page() {
   return (
@@ -111,8 +110,7 @@ export default function Page() {
           </div>
         </div>
         <div className="symbolBox">
-          <label>Analyze any symbol...</label>
-          <div className="symbols">{symbols.map((symbol) => <span key={symbol}>{symbol}</span>)}<button>Analyze</button></div>
+          <AnalyzeBox />
           <div className="miniBenefits">
             <span><Target size={18} /> Market Conditions</span>
             <span><Zap size={18} /> Risk Environment</span>
