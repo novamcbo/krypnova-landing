@@ -311,7 +311,7 @@ export default function AnalyzeBox() {
             </p>
           )}
           <a href={registerUrl} className="button small">
-            Unlock Full Signal <ArrowRight size={15} />
+            Unlock Exion AI <ArrowRight size={15} />
           </a>
           <p className="analyzeDisclaimer">
             This assessment is generated for informational and educational purposes

@@ -163,7 +163,7 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
       </div>
 
       <Link href="https://app.krypnova.com" className={styles.unlockButton}>
-        Unlock Full Signal <ArrowRight size={16} />
+        Unlock Exion AI <ArrowRight size={16} />
       </Link>
     </article>
   );
