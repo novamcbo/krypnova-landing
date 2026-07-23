@@ -57,6 +57,9 @@ export default function Page() {
         </div>
 
         <div className={`navActions ${styles.navActions}`}>
+          <a href="/markets" className={styles.mobileLiveLink}>
+            <span className={styles.mobileLiveDot} /> Live
+          </a>
           <a href={loginUrl} className={`login ${styles.login}`}>Login</a>
           <a href={registerUrl} className={`button small ${styles.betaButton}`}>
             <span className={styles.desktopCta}>Start Free Beta</span>
