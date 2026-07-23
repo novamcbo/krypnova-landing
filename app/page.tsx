@@ -51,6 +51,7 @@ export default function Page() {
           <a href="#features">Features</a>
           <a href="#how-it-works">How It Works</a>
           <a href="#beta">Beta Access</a>
+          <a href="/markets">Live Markets</a>
           <a href="#roadmap">Roadmap</a>
           <a href={`mailto:${contactEmail}`}>Contact</a>
         </div>
