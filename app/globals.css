@@ -1407,3 +1407,24 @@ footer>.footerLinks {
   color: #94a3b8;
   font-size: 12.5px;
 }
+
+.analyzeSubsetNote {
+  color: #8fa2ba !important;
+  font-size: 13px !important;
+}
+
+.analyzeSubsetNote a {
+  color: #5eb2ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.analyzeSubsetNote a:hover { color: #8ccaff; }
+
+.analyzeSuggestLabel {
+  margin: 2px 0 8px !important;
+  color: #8191a8 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}

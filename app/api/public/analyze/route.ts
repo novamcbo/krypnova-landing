@@ -98,7 +98,8 @@ export async function POST(request: NextRequest) {
         {
           allowed: true,
           found: false,
-          message: `Exion AI hasn't analyzed ${symbol.toUpperCase()} recently. Try one of the assets it is watching right now.`,
+          symbol: symbol.toUpperCase(),
+          message: `No public assessment is currently available for ${symbol.toUpperCase()}.`,
           suggestions: available.map((item) => item.symbol),
         },
         { status: 200, headers: { "Cache-Control": "no-store" } },

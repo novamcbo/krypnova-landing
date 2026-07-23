@@ -222,22 +222,33 @@ export default function AnalyzeBox() {
       {result?.allowed && result.found === false && (
         <div className="analyzeResult">
           <p>{result.message}</p>
+          <p className="analyzeSubsetNote">
+            The complimentary demo showcases a subset of Exion&apos;s live market
+            assessments. The full{" "}
+            <a href={registerUrl}>Krypnova Beta</a> supports a much broader market
+            universe.
+          </p>
           {result.suggestions && result.suggestions.length > 0 && (
-            <div className="symbols analyzeChips">
-              {result.suggestions.map((suggestion) => (
-                <span
-                  key={suggestion}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => {
-                    setQuery(formatPair(suggestion));
-                    void analyze(suggestion);
-                  }}
-                >
-                  {formatPair(suggestion)}
-                </span>
-              ))}
-            </div>
+            <>
+              <p className="analyzeSuggestLabel">
+                Or explore one Exion is watching right now:
+              </p>
+              <div className="symbols analyzeChips">
+                {result.suggestions.map((suggestion) => (
+                  <span
+                    key={suggestion}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setQuery(formatPair(suggestion));
+                      void analyze(suggestion);
+                    }}
+                  >
+                    {formatPair(suggestion)}
+                  </span>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
