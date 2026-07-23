@@ -4,6 +4,7 @@ export interface PublicMarketSignal {
   exchange: string;
   symbol: string;
   signal: PublicSignalDirection;
+  price: number | null;
   confidence: number | null;
   alpha: number | null;
   expectedRoi: number | null;

@@ -163,6 +163,13 @@ function normalizeRow(row: DecisionRow): PublicMarketSignal {
     exchange: displayExchange(row.exchange),
     symbol: String(row.symbol ?? "Unknown").trim().toUpperCase(),
     signal: publicAction(row.action),
+    price: firstNumber(
+      metadata.market_price,
+      nested(payload, "metadata", "risk_payload", "current_price"),
+      nested(payload, "metadata", "risk_payload", "entry_price"),
+      payload.market_price,
+      payload.price,
+    ),
     confidence: percentScore(
       firstNumber(
         payload.confidence,

@@ -149,6 +149,10 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
         </strong>
       </div>
 
+      {signal.price !== null && (
+        <p className={styles.priceRow}>{formatPrice(signal.price)}</p>
+      )}
+
       <div className={styles.metricsGrid}>
         <Metric label="Confidence" value={assessed ? formatPercent(signal.confidence) : "—"} />
         <Metric label="Alpha" value={assessed ? formatPercent(signal.alpha) : "—"} />
@@ -199,6 +203,14 @@ function formatTime(value: string): string {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatPrice(value: number): string {
+  const fractionDigits = value >= 1000 ? 2 : value >= 1 ? 4 : 6;
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: fractionDigits,
+  })}`;
 }
 
 function formatRelative(value: string): string {
