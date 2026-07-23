@@ -12,10 +12,17 @@ export interface PublicMarketSignal {
   updatedAt: string;
 }
 
+export interface PublicSignalStats {
+  decisionsLast24h: number;
+  assetsMonitored: number;
+  lastDecisionAt: string | null;
+}
+
 export interface PublicSignalsResponse {
   signals: PublicMarketSignal[];
   mode: "Paper" | "Live";
   generatedAt: string;
   stale: boolean;
   message?: string;
+  stats?: PublicSignalStats;
 }

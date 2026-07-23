@@ -2,6 +2,7 @@ import { Pool, type QueryResultRow } from "pg";
 import type {
   PublicMarketSignal,
   PublicSignalDirection,
+  PublicSignalStats,
 } from "@/lib/signal-types";
 
 type JsonRecord = Record<string, unknown>;
@@ -228,8 +229,61 @@ export async function loadPublicSignals(options?: {
     const normalized = normalizeRow(row);
     const key = `${normalized.exchange}:${normalized.symbol}`;
     if (!unique.has(key)) unique.set(key, normalized);
-    if (unique.size >= limit) break;
   }
 
-  return Array.from(unique.values());
+  // Surface the richest assessments first: cards full of zeros read as
+  // "broken" to visitors, so signals with real metrics take priority and
+  // recency breaks ties.
+  return Array.from(unique.values())
+    .sort((a, b) => {
+      const richness = signalRichness(b) - signalRichness(a);
+      if (richness !== 0) return richness;
+      return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+    })
+    .slice(0, limit);
+}
+
+function signalRichness(signal: PublicMarketSignal): number {
+  let score = 0;
+  if (signal.confidence) score += 2;
+  if (signal.alpha) score += 2;
+  if (signal.expectedRoi) score += 1;
+  if (signal.riskReward) score += 1;
+  if (signal.riskScore !== null) score += 1;
+  if (signal.signal === "LONG" || signal.signal === "SHORT") score += 3;
+  return score;
+}
+
+export async function loadSignalStats(options?: {
+  userId?: string;
+}): Promise<PublicSignalStats> {
+  if (!signalsPool) {
+    throw new Error("The market intelligence database is not configured.");
+  }
+
+  const userId = options?.userId ?? process.env.PUBLIC_SIGNALS_USER_ID ?? "";
+
+  const result = await signalsPool.query<
+    QueryResultRow & { decisions: unknown; assets: unknown; latest: unknown }
+  >(
+    `
+      SELECT
+        count(*) FILTER (WHERE ts > now() - interval '24 hours')::int AS decisions,
+        count(DISTINCT symbol) FILTER (WHERE ts > now() - interval '24 hours')::int AS assets,
+        max(ts) AS latest
+      FROM krypnova_decision_events
+      WHERE ($1 = '' OR user_id = $1)
+    `,
+    [userId],
+  );
+
+  const row = result.rows[0];
+  const latest = row?.latest ? new Date(String(row.latest)) : null;
+
+  return {
+    decisionsLast24h: Number(row?.decisions ?? 0),
+    assetsMonitored: Number(row?.assets ?? 0),
+    lastDecisionAt:
+      latest && !Number.isNaN(latest.getTime()) ? latest.toISOString() : null,
+  };
 }

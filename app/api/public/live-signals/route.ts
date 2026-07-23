@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadPublicSignals } from "@/lib/live-signals";
+import { loadPublicSignals, loadSignalStats } from "@/lib/live-signals";
 import type { PublicSignalsResponse } from "@/lib/signal-types";
 
 export const runtime = "nodejs";
@@ -13,12 +13,16 @@ export async function GET(request: NextRequest) {
   const limit = Number.isFinite(rawLimit) ? rawLimit : 8;
 
   try {
-    const signals = await loadPublicSignals({ limit, mode });
+    const [signals, stats] = await Promise.all([
+      loadPublicSignals({ limit, mode }),
+      loadSignalStats(),
+    ]);
     const response: PublicSignalsResponse = {
       signals,
       mode,
       generatedAt: new Date().toISOString(),
       stale: false,
+      stats,
       ...(signals.length === 0
         ? { message: "Exion AI is monitoring the market. No public signals are available yet." }
         : {}),

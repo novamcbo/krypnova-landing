@@ -51,7 +51,14 @@ export default function LiveSignals() {
       <div className={styles.signalHeader}>
         <div>
           <span className={styles.eyebrow}>Powered by Exion AI</span>
-          <h2>Live Market Intelligence</h2>
+          <h2>
+            Live Market Intelligence
+            {!data?.stale && (
+              <span className={styles.liveBadge}>
+                <span className={styles.liveDot} /> LIVE
+              </span>
+            )}
+          </h2>
           <p>
             Public, explainable market assessments across connected exchanges. Detailed
             entries, exits, sizing, and reasoning remain available inside Krypnova.
@@ -63,6 +70,22 @@ export default function LiveSignals() {
           Refresh
         </button>
       </div>
+
+      {data?.stats && (
+        <div className={styles.statsRow}>
+          <span>
+            <strong>{data.stats.decisionsLast24h.toLocaleString("en")}</strong> AI decisions in the last 24h
+          </span>
+          <span>
+            <strong>{data.stats.assetsMonitored}</strong> assets monitored
+          </span>
+          {data.stats.lastDecisionAt && (
+            <span>
+              Last decision <strong>{formatRelative(data.stats.lastDecisionAt)}</strong>
+            </span>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className={styles.signalGrid}>
@@ -89,7 +112,7 @@ export default function LiveSignals() {
           <ShieldCheck size={16} /> Paper-mode intelligence for demonstration. Not financial advice.
         </span>
         <span>
-          Updated {data ? formatTime(data.generatedAt) : "now"}
+          Updated {data ? formatRelative(data.generatedAt) : "now"}
           {data?.stale ? " · Connection delayed" : " · Auto-refreshes every minute"}
         </span>
       </div>
@@ -107,23 +130,32 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
           ? styles.reject
           : styles.watch;
 
+  // A WAIT decision with zeroed metrics means Exion has not scored this
+  // asset yet — dashes plus a "Scanning" state read as activity, while a
+  // wall of 0% reads as an outage.
+  const assessed = Boolean(
+    signal.confidence || signal.alpha || signal.expectedRoi || signal.riskScore !== null,
+  );
+
   return (
     <article className={styles.signalCard}>
       <div className={styles.cardTop}>
         <div>
           <span>{signal.exchange}</span>
-          <h3>{signal.symbol}</h3>
+          <h3>{formatSymbol(signal.symbol)}</h3>
         </div>
-        <strong className={`${styles.direction} ${directionClass}`}>{signal.signal}</strong>
+        <strong className={`${styles.direction} ${directionClass}`}>
+          {assessed ? signal.signal : "SCANNING"}
+        </strong>
       </div>
 
       <div className={styles.metricsGrid}>
-        <Metric label="Confidence" value={formatPercent(signal.confidence)} />
-        <Metric label="Alpha" value={formatPercent(signal.alpha)} />
-        <Metric label="Expected ROI" value={formatSignedPercent(signal.expectedRoi)} />
-        <Metric label="Risk / Reward" value={formatRatio(signal.riskReward)} />
+        <Metric label="Confidence" value={assessed ? formatPercent(signal.confidence) : "—"} />
+        <Metric label="Alpha" value={assessed ? formatPercent(signal.alpha) : "—"} />
+        <Metric label="Expected ROI" value={assessed ? formatSignedPercent(signal.expectedRoi) : "—"} />
+        <Metric label="Risk / Reward" value={assessed ? formatRatio(signal.riskReward) : "—"} />
         <Metric label="Risk Score" value={formatScore(signal.riskScore)} />
-        <Metric label="Updated" value={formatTime(signal.updatedAt)} />
+        <Metric label="Updated" value={formatRelative(signal.updatedAt)} />
       </div>
 
       <Link href="https://app.krypnova.com" className={styles.unlockButton}>
@@ -167,4 +199,29 @@ function formatTime(value: string): string {
     hour: "numeric",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatRelative(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return formatTime(value);
+}
+
+function formatSymbol(value: string): string {
+  if (value.includes("/")) return value;
+  if (value.includes("-")) return value.replace("-", "/");
+  // Kraken legacy pairs look like XXLMZUSD (X<base>Z<quote>).
+  const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
+  if (kraken) {
+    const base = kraken[1] === "XBT" ? "BTC" : kraken[1];
+    return `${base}/${kraken[2]}`;
+  }
+  const quote = ["USDT", "USDC", "USD", "EUR"].find((q) => value.endsWith(q) && value.length > q.length);
+  return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
 }
