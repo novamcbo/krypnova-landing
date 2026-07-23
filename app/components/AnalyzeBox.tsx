@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Lock, Sparkles } from "lucide-react";
+import { ArrowRight, Gift, Lock, Sparkles } from "lucide-react";
 import type { PublicSignalsResponse } from "@/lib/signal-types";
 
 const registerUrl = "https://app.krypnova.com/register";
@@ -203,11 +203,15 @@ export default function AnalyzeBox() {
       {result && !result.allowed && (
         <div className="analyzeResult analyzeLimit">
           <p>
-            <Sparkles size={16} /> {result.message ?? "Free analysis used."}
-            {result.resetAt ? ` Next free analysis ${formatReset(result.resetAt)}.` : ""}
+            <Sparkles size={15} /> That&apos;s today&apos;s complimentary assessment —
+            thanks for exploring with Exion.
+            {result.resetAt
+              ? ` A fresh one unlocks ${formatReset(result.resetAt)}, and`
+              : " And"}{" "}
+            Beta members enjoy unlimited assessments anytime.
           </p>
           <a href={registerUrl} className="button small">
-            Start Free Beta for unlimited analyses <ArrowRight size={15} />
+            Continue with the free Beta <ArrowRight size={15} />
           </a>
         </div>
       )}
@@ -306,8 +310,8 @@ export default function AnalyzeBox() {
           </div>
           {result.counted === false && (
             <p className="analyzeFreeNote">
-              <Sparkles size={14} /> This one was on us — your complimentary analysis
-              is still available.
+              <Gift size={14} /> That one was on the house — your complimentary
+              assessment is still yours to use. Explore another market anytime.
             </p>
           )}
           <a href={registerUrl} className="button small">

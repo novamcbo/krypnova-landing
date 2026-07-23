@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
         {
           allowed: false,
           resetAt: quota.resetAt,
-          message: "Free analysis used. Join the beta for unlimited access.",
+          message:
+            "That's today's complimentary assessment — a fresh one unlocks within 24 hours, and Beta members enjoy unlimited access.",
         },
         { status: 429, headers: { "Cache-Control": "no-store" } },
       );
