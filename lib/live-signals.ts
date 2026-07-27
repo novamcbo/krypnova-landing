@@ -95,6 +95,13 @@ function percentScore(value: number | null): number | null {
   return clamp(percentage, 0, 100);
 }
 
+// The risk score is already emitted on a 0-100 scale, so it must NOT go through
+// percentScore's "<= 1 means a fraction" rescaling — that would turn a genuine
+// 0.8 risk score into 80.
+function riskScoreValue(value: number | null): number | null {
+  return value === null ? null : clamp(value, 0, 100);
+}
+
 function roiPercent(value: number | null): number | null {
   if (value === null) return null;
   const percentage = Math.abs(value) <= 1 ? value * 100 : value;
@@ -209,8 +216,18 @@ function normalizeRow(row: DecisionRow): PublicMarketSignal {
       riskPayload.reward_risk_ratio,
       profitMetrics.risk_reward,
     ),
-    riskScore: percentScore(
-      firstNumber(metadata.risk_score, riskPayload.risk_score),
+    // Exion writes the 0-100 risk score on the market-intelligence snapshot
+    // under metadata, not on the decision root — reading only the root paths
+    // left every card showing "—".
+    riskScore: riskScoreValue(
+      firstNumber(
+        metadata.mi_risk_score,
+        nested(metadata, "market_intelligence", "risk_score"),
+        nested(metadata, "unified_sources", "market_intelligence", "risk_score"),
+        nested(metadata, "risk_payload", "risk_score"),
+        metadata.risk_score,
+        riskPayload.risk_score,
+      ),
     ),
     updatedAt: new Date(String(row.ts)).toISOString(),
   };

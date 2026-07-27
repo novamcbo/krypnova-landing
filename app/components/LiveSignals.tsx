@@ -159,7 +159,11 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
         <Metric label="Expected ROI" value={assessed ? formatSignedPercent(signal.expectedRoi) : "—"} />
         <Metric label="Risk / Reward" value={assessed ? formatRatio(signal.riskReward) : "—"} />
         <Metric label="Risk Score" value={formatScore(signal.riskScore)} />
-        <Metric label="Updated" value={formatRelative(signal.updatedAt)} />
+        <Metric
+          label="Updated"
+          value={formatDateTime(signal.updatedAt)}
+          title={formatRelative(signal.updatedAt)}
+        />
       </div>
 
       <Link href="https://app.krypnova.com" className={styles.unlockButton}>
@@ -169,9 +173,17 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({
+  label,
+  value,
+  title,
+}: {
+  label: string;
+  value: string;
+  title?: string;
+}) {
   return (
-    <div className={styles.metric}>
+    <div className={styles.metric} title={title}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -202,6 +214,21 @@ function formatTime(value: string): string {
   return new Intl.DateTimeFormat("en", {
     hour: "numeric",
     minute: "2-digit",
+  }).format(date);
+}
+
+// Visitors asked when a call was made, not how long ago — "Jul 27, 04:14" is
+// auditable, "just now" is not. Rendered client-side, so it lands in the
+// visitor's own timezone.
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   }).format(date);
 }
 
