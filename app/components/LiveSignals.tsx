@@ -130,19 +130,22 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
           ? styles.reject
           : styles.watch;
 
-  // A WAIT decision with zeroed metrics means Exion has not scored this
-  // asset yet — dashes plus a "Scanning" state read as activity, while a
-  // wall of 0% reads as an outage.
   const assessed = Boolean(
     signal.confidence || signal.alpha || signal.expectedRoi || signal.riskScore !== null,
   );
+
+  const analysisHref = `/markets/${symbolPageSlug(signal.symbol)}`;
 
   return (
     <article className={styles.signalCard}>
       <div className={styles.cardTop}>
         <div>
           <span>{signal.exchange}</span>
-          <h3>{formatSymbol(signal.symbol)}</h3>
+          <h3>
+            <Link href={analysisHref} style={{ color: "inherit", textDecoration: "none" }}>
+              {formatSymbol(signal.symbol)}
+            </Link>
+          </h3>
         </div>
         <strong className={`${styles.direction} ${directionClass}`}>
           {assessed ? signal.signal : "SCANNING"}
@@ -166,8 +169,8 @@ function SignalCard({ signal }: { signal: PublicMarketSignal }) {
         />
       </div>
 
-      <Link href="https://app.krypnova.com" className={styles.unlockButton}>
-        Unlock Exion AI <ArrowRight size={16} />
+      <Link href={analysisHref} className={styles.unlockButton}>
+        View Daily Analysis <ArrowRight size={16} />
       </Link>
     </article>
   );
@@ -217,9 +220,6 @@ function formatTime(value: string): string {
   }).format(date);
 }
 
-// Visitors asked when a call was made, not how long ago — "Jul 27, 04:14" is
-// auditable, "just now" is not. Rendered client-side, so it lands in the
-// visitor's own timezone.
 function formatDateTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
@@ -255,7 +255,6 @@ function formatRelative(value: string): string {
 function formatSymbol(value: string): string {
   if (value.includes("/")) return value;
   if (value.includes("-")) return value.replace("-", "/");
-  // Kraken legacy pairs look like XXLMZUSD (X<base>Z<quote>).
   const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
   if (kraken) {
     const base = kraken[1] === "XBT" ? "BTC" : kraken[1];
@@ -263,4 +262,21 @@ function formatSymbol(value: string): string {
   }
   const quote = ["USDT", "USDC", "USD", "EUR"].find((q) => value.endsWith(q) && value.length > q.length);
   return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
+}
+
+function symbolPageSlug(value: string): string {
+  let normalized = value.toUpperCase().replace(/[/\-_:]/g, "").trim();
+  const kraken = normalized.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
+  if (kraken) normalized = kraken[1] + kraken[2];
+
+  for (const quote of ["USDT", "USDC", "ZUSD", "USD", "EUR", "GBP", "PERP"]) {
+    if (normalized.endsWith(quote) && normalized.length > quote.length) {
+      normalized = normalized.slice(0, -quote.length);
+      break;
+    }
+  }
+
+  if (normalized === "XBT") normalized = "BTC";
+  if (normalized === "XDG") normalized = "DOGE";
+  return normalized.toLowerCase();
 }
