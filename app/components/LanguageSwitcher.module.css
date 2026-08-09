@@ -1,6 +1,6 @@
 .wrapper {
   position: fixed;
-  top: 18px;
+  top: 84px;
   right: 18px;
   z-index: 1000;
   font-family: inherit;
@@ -75,14 +75,27 @@
   letter-spacing: 0.08em;
 }
 
-@media (max-width: 680px) {
+@media (max-width: 900px) {
   .wrapper {
-    top: 12px;
-    right: 12px;
+    top: auto;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
   }
 
+  .menu {
+    top: auto;
+    bottom: calc(100% + 8px);
+  }
+}
+
+@media (max-width: 680px) {
   .trigger {
-    min-height: 36px;
+    min-height: 38px;
     padding: 0 10px;
+    box-shadow: 0 8px 28px rgba(0, 37, 95, 0.34);
+  }
+
+  .menu {
+    width: min(190px, calc(100vw - 24px));
   }
 }
