@@ -1,0 +1,88 @@
+.wrapper {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1000;
+  font-family: inherit;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(125, 180, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(5, 14, 32, 0.82);
+  color: #f7fbff;
+  box-shadow: 0 10px 34px rgba(0, 37, 95, 0.28);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+}
+
+.trigger:hover {
+  border-color: rgba(94, 170, 255, 0.58);
+  background: rgba(8, 24, 51, 0.94);
+}
+
+.rotated {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 190px;
+  padding: 8px;
+  border: 1px solid rgba(125, 180, 255, 0.22);
+  border-radius: 16px;
+  background: rgba(4, 12, 28, 0.96);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+}
+
+.option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #eaf4ff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: rgba(41, 130, 255, 0.13);
+}
+
+.option span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.option strong {
+  width: 26px;
+  color: #66b2ff;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 680px) {
+  .wrapper {
+    top: 12px;
+    right: 12px;
+  }
+
+  .trigger {
+    min-height: 36px;
+    padding: 0 10px;
+  }
+}

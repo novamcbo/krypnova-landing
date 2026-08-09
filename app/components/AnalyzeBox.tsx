@@ -3,37 +3,24 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowRight, Check, Gift, Lock, Sparkles } from "lucide-react";
 import type { PublicSignalsResponse } from "@/lib/signal-types";
+import type { Locale } from "@/lib/i18n";
 
 const registerUrl = "https://app.krypnova.com/register";
-
 const FALLBACK_CHIPS = ["BTC/USD", "ETH/USD", "SOL/USD", "DOGE/USD", "ADA/USD", "LINK/USD"];
-
 const CONSENT_KEY = "krypnova-analyze-consent-v1";
 const CREATOR_KEY = "krypnova-analyze-key";
 
-interface AnalyzeResult {
-  allowed: boolean;
-  found?: boolean;
-  counted?: boolean;
-  message?: string;
-  suggestions?: string[];
-  symbol?: string;
-  exchange?: string;
-  signal?: string;
-  price?: number | null;
-  marketBias?: "long" | "short" | "neutral" | null;
-  auctionState?: string | null;
-  confidence?: number | null;
-  expectedRoi?: number | null;
-  riskReward?: number | null;
-  todayChange?: number | null;
-  volume?: number | null;
-  summary?: string;
-  resetAt?: string | null;
-  updatedAt?: string;
-}
+const copy = {
+  en: { title: "Try Exion AI — Complimentary Market Assessment", sub: "One complimentary analysis every 24 hours.", analyze: "Analyze", analyzing: "Analyzing…", edu: "Educational AI Market Assessment.", disclaimer: "Exion provides analytical market intelligence for educational and informational purposes only. It does not provide financial, investment, legal, or tax advice, nor a recommendation to buy, sell, or hold any asset. Trading and investing involve risk, including the possible loss of capital.", consent: "I understand this analysis is provided for educational purposes only and is not financial advice.", unavailable: "Analysis is temporarily unavailable. Please try again soon.", quota: "That's today's complimentary assessment — thanks for exploring with Exion.", quotaTail: "Beta members enjoy unlimited assessments anytime.", continue: "Continue with the free Beta", subset: "The complimentary demo showcases a subset of Exion's live market assessments. The full Krypnova Beta supports a much broader market universe.", explore: "Or explore one Exion is watching right now:", market: "Market", auction: "Auction", confidence: "Confidence", roi: "Expected ROI", today: "Today", volume: "Volume", levels: "Key Levels — members only", support: "Support", resistance: "Resistance", trigger: "Buy Trigger", risk: "Risk Level", gift: "That one was on the house — your complimentary assessment is still yours to use. Explore another market anytime.", unlock: "Unlock Exion AI", resultDisclaimer: "This assessment is generated for informational and educational purposes only. It is not a recommendation to buy, sell, or hold any financial asset. Trading and investing involve risk, including the possible loss of principal.", publicDemo: "Public Demo", demo1: "Selected live assessments", demo2: "One complimentary analysis every 24 hours", inside: "Inside Krypnova Beta", beta1: "Search the full supported market universe", beta2: "Live AI Copilot", beta3: "Full execution plans", beta4: "Unlimited market assessments", paper: "Paper mode", asOf: "as of", bullish: "Bullish", bearish: "Bearish", neutral: "Neutral" },
+  es: { title: "Prueba Exion AI — Evaluación de Mercado de Cortesía", sub: "Una evaluación gratuita cada 24 horas.", analyze: "Analizar", analyzing: "Analizando…", edu: "Evaluación educativa de mercado con IA.", disclaimer: "Exion ofrece inteligencia analítica de mercado solo con fines educativos e informativos. No ofrece asesoría financiera, de inversión, legal o fiscal, ni recomienda comprar, vender o mantener ningún activo. Operar e invertir implica riesgo, incluida la posible pérdida de capital.", consent: "Entiendo que este análisis se ofrece solo con fines educativos y no constituye asesoría financiera.", unavailable: "El análisis no está disponible temporalmente. Inténtalo de nuevo pronto.", quota: "Esa fue la evaluación gratuita de hoy — gracias por explorar con Exion.", quotaTail: "Los miembros Beta disfrutan evaluaciones ilimitadas.", continue: "Continuar con la Beta gratis", subset: "La demostración gratuita muestra una selección de las evaluaciones de mercado en vivo de Exion. La Beta completa de Krypnova cubre un universo de mercados mucho más amplio.", explore: "O explora uno que Exion está monitoreando ahora:", market: "Mercado", auction: "Subasta", confidence: "Confianza", roi: "ROI esperado", today: "Hoy", volume: "Volumen", levels: "Niveles clave — solo miembros", support: "Soporte", resistance: "Resistencia", trigger: "Activador de compra", risk: "Nivel de riesgo", gift: "Esta fue por cortesía — tu evaluación gratuita sigue disponible. Puedes explorar otro mercado.", unlock: "Desbloquear Exion AI", resultDisclaimer: "Esta evaluación se genera solo con fines informativos y educativos. No es una recomendación para comprar, vender o mantener ningún activo financiero. Operar e invertir implica riesgo, incluida la posible pérdida del capital.", publicDemo: "Demo pública", demo1: "Evaluaciones en vivo seleccionadas", demo2: "Una evaluación gratuita cada 24 horas", inside: "Dentro de Krypnova Beta", beta1: "Busca en todo el universo de mercados compatibles", beta2: "AI Copilot en vivo", beta3: "Planes completos de ejecución", beta4: "Evaluaciones de mercado ilimitadas", paper: "Modo paper", asOf: "actualizado", bullish: "Alcista", bearish: "Bajista", neutral: "Neutral" },
+  pt: { title: "Experimente o Exion AI — Avaliação de Mercado Gratuita", sub: "Uma avaliação gratuita a cada 24 horas.", analyze: "Analisar", analyzing: "Analisando…", edu: "Avaliação educacional de mercado com IA.", disclaimer: "Exion fornece inteligência analítica de mercado apenas para fins educacionais e informativos. Não fornece aconselhamento financeiro, de investimento, jurídico ou fiscal, nem recomenda comprar, vender ou manter ativos. Negociar e investir envolve riscos, incluindo possível perda de capital.", consent: "Entendo que esta análise é fornecida apenas para fins educacionais e não é aconselhamento financeiro.", unavailable: "A análise está temporariamente indisponível. Tente novamente em breve.", quota: "Essa foi a avaliação gratuita de hoje — obrigado por explorar com o Exion.", quotaTail: "Membros Beta têm avaliações ilimitadas.", continue: "Continuar com a Beta grátis", subset: "A demonstração gratuita mostra uma seleção das avaliações ao vivo do Exion. A Beta completa da Krypnova oferece um universo de mercados muito mais amplo.", explore: "Ou explore um ativo que o Exion está monitorando agora:", market: "Mercado", auction: "Leilão", confidence: "Confiança", roi: "ROI esperado", today: "Hoje", volume: "Volume", levels: "Níveis-chave — apenas membros", support: "Suporte", resistance: "Resistência", trigger: "Gatilho de compra", risk: "Nível de risco", gift: "Essa foi por conta da casa — sua avaliação gratuita continua disponível. Explore outro mercado quando quiser.", unlock: "Desbloquear Exion AI", resultDisclaimer: "Esta avaliação é gerada apenas para fins informativos e educacionais. Não é uma recomendação para comprar, vender ou manter qualquer ativo financeiro. Negociar e investir envolve riscos, incluindo possível perda do principal.", publicDemo: "Demo pública", demo1: "Avaliações ao vivo selecionadas", demo2: "Uma avaliação gratuita a cada 24 horas", inside: "Dentro da Krypnova Beta", beta1: "Pesquise todo o universo de mercados compatíveis", beta2: "AI Copilot ao vivo", beta3: "Planos completos de execução", beta4: "Avaliações de mercado ilimitadas", paper: "Modo paper", asOf: "atualizado", bullish: "Altista", bearish: "Baixista", neutral: "Neutro" },
+  fr: { title: "Essayez Exion AI — Évaluation de Marché Offerte", sub: "Une évaluation offerte toutes les 24 heures.", analyze: "Analyser", analyzing: "Analyse…", edu: "Évaluation éducative du marché par IA.", disclaimer: "Exion fournit une intelligence analytique de marché à des fins éducatives et informatives uniquement. Il ne fournit aucun conseil financier, d'investissement, juridique ou fiscal et ne recommande pas d'acheter, vendre ou conserver un actif. Le trading et l'investissement comportent des risques, y compris la perte possible de capital.", consent: "Je comprends que cette analyse est fournie à des fins éducatives uniquement et ne constitue pas un conseil financier.", unavailable: "L'analyse est temporairement indisponible. Veuillez réessayer bientôt.", quota: "C'était l'évaluation offerte aujourd'hui — merci d'explorer avec Exion.", quotaTail: "Les membres Beta bénéficient d'évaluations illimitées.", continue: "Continuer avec la Beta gratuite", subset: "La démonstration gratuite présente une sélection des évaluations de marché en direct d'Exion. La Beta complète de Krypnova couvre un univers de marchés beaucoup plus large.", explore: "Ou explorez un actif qu'Exion surveille actuellement :", market: "Marché", auction: "Enchère", confidence: "Confiance", roi: "ROI attendu", today: "Aujourd'hui", volume: "Volume", levels: "Niveaux clés — membres uniquement", support: "Support", resistance: "Résistance", trigger: "Déclencheur d'achat", risk: "Niveau de risque", gift: "Celle-ci était offerte — votre évaluation gratuite reste disponible. Explorez un autre marché quand vous le souhaitez.", unlock: "Débloquer Exion AI", resultDisclaimer: "Cette évaluation est générée à des fins informatives et éducatives uniquement. Ce n'est pas une recommandation d'acheter, vendre ou conserver un actif financier. Le trading et l'investissement comportent des risques, y compris la perte possible du capital.", publicDemo: "Démo publique", demo1: "Évaluations en direct sélectionnées", demo2: "Une évaluation offerte toutes les 24 heures", inside: "Dans Krypnova Beta", beta1: "Recherchez dans tout l'univers de marchés pris en charge", beta2: "AI Copilot en direct", beta3: "Plans d'exécution complets", beta4: "Évaluations de marché illimitées", paper: "Mode paper", asOf: "mis à jour", bullish: "Haussier", bearish: "Baissier", neutral: "Neutre" },
+} satisfies Record<Locale, Record<string, string>>;
 
-export default function AnalyzeBox() {
+interface AnalyzeResult { allowed: boolean; found?: boolean; counted?: boolean; message?: string; suggestions?: string[]; symbol?: string; exchange?: string; signal?: string; price?: number | null; marketBias?: "long" | "short" | "neutral" | null; auctionState?: string | null; confidence?: number | null; expectedRoi?: number | null; riskReward?: number | null; todayChange?: number | null; volume?: number | null; summary?: string; resetAt?: string | null; updatedAt?: string; }
+
+export default function AnalyzeBox({ locale = "en" }: { locale?: Locale }) {
+  const t = copy[locale];
   const [query, setQuery] = useState("");
   const [chips, setChips] = useState<string[]>(FALLBACK_CHIPS);
   const [loading, setLoading] = useState(false);
@@ -45,395 +32,46 @@ export default function AnalyzeBox() {
   useEffect(() => {
     try {
       setConsented(window.localStorage.getItem(CONSENT_KEY) === "1");
-      // One-time creator activation: /?analyzekey=TOKEN stores the key and
-      // cleans the URL.
       const params = new URLSearchParams(window.location.search);
       const key = params.get("analyzekey");
-      if (key) {
-        window.localStorage.setItem(CREATOR_KEY, key);
-        params.delete("analyzekey");
-        const query = params.toString();
-        window.history.replaceState(
-          null,
-          "",
-          `${window.location.pathname}${query ? `?${query}` : ""}`,
-        );
-      }
-    } catch {
-      // storage unavailable: fall back to asking each session
-    }
+      if (key) { window.localStorage.setItem(CREATOR_KEY, key); params.delete("analyzekey"); const qs = params.toString(); window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`); }
+    } catch {}
   }, []);
 
   useEffect(() => {
-    // Offer symbols Exion is actually watching right now.
-    fetch("/api/public/live-signals?limit=6")
-      .then((response) => response.json() as Promise<PublicSignalsResponse>)
-      .then((body) => {
-        const symbols = body.signals?.map((signal) => formatPair(signal.symbol)) ?? [];
-        if (symbols.length >= 3) setChips(symbols.slice(0, 6));
-      })
-      .catch(() => undefined);
+    fetch("/api/public/live-signals?limit=6").then((r) => r.json() as Promise<PublicSignalsResponse>).then((body) => { const symbols = body.signals?.map((signal) => formatPair(signal.symbol)) ?? []; if (symbols.length >= 3) setChips(symbols.slice(0, 6)); }).catch(() => undefined);
   }, []);
 
-  const analyze = async (symbol: string) => {
-    const trimmed = symbol.trim();
-    if (!trimmed || loading) return;
-    if (!consented) {
-      // First use: require the educational-purpose acknowledgement.
-      setPendingSymbol(trimmed);
-      return;
-    }
-    await runAnalysis(trimmed);
-  };
-
-  const acceptConsent = () => {
-    try {
-      window.localStorage.setItem(CONSENT_KEY, "1");
-    } catch {
-      // ignore storage failures; consent still applies this session
-    }
-    setConsented(true);
-    const symbol = pendingSymbol;
-    setPendingSymbol(null);
-    if (symbol) void runAnalysis(symbol);
-  };
-
+  const analyze = async (symbol: string) => { const trimmed = symbol.trim(); if (!trimmed || loading) return; if (!consented) { setPendingSymbol(trimmed); return; } await runAnalysis(trimmed); };
+  const acceptConsent = () => { try { window.localStorage.setItem(CONSENT_KEY, "1"); } catch {} setConsented(true); const symbol = pendingSymbol; setPendingSymbol(null); if (symbol) void runAnalysis(symbol); };
   const runAnalysis = async (trimmed: string) => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
+    setLoading(true); setError(null); setResult(null);
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      try {
-        const creatorKey = window.localStorage.getItem(CREATOR_KEY);
-        if (creatorKey) headers["x-analyze-key"] = creatorKey;
-      } catch {
-        // ignore storage failures
-      }
-
-      const response = await fetch("/api/public/analyze", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ symbol: trimmed }),
-        cache: "no-store",
-      });
+      try { const creatorKey = window.localStorage.getItem(CREATOR_KEY); if (creatorKey) headers["x-analyze-key"] = creatorKey; } catch {}
+      const response = await fetch("/api/public/analyze", { method: "POST", headers, body: JSON.stringify({ symbol: trimmed }), cache: "no-store" });
       const body = (await response.json()) as AnalyzeResult & { message?: string };
-
-      if (response.status === 429) {
-        setResult({ allowed: false, resetAt: body.resetAt, message: body.message });
-      } else if (!response.ok) {
-        setError(body.message ?? "Analysis is temporarily unavailable.");
-      } else {
-        setResult(body);
-      }
-    } catch {
-      setError("Analysis is temporarily unavailable. Please try again soon.");
-    } finally {
-      setLoading(false);
-    }
+      if (response.status === 429) setResult({ allowed: false, resetAt: body.resetAt, message: body.message }); else if (!response.ok) setError(body.message ?? t.unavailable); else setResult(body);
+    } catch { setError(t.unavailable); } finally { setLoading(false); }
   };
+  const onSubmit = (event: FormEvent) => { event.preventDefault(); void analyze(query); };
 
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    void analyze(query);
-  };
-
-  return (
-    <>
-      <label htmlFor="analyze-symbol">Try Exion AI — Complimentary Market Assessment</label>
-      <p className="analyzeSub">One complimentary analysis every 24 hours.</p>
-
-      <form className="symbols" onSubmit={onSubmit}>
-        <input
-          id="analyze-symbol"
-          className="analyzeInput"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="BTC, ETH, SOL…"
-          maxLength={15}
-          autoComplete="off"
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Analyzing…" : "Analyze"}
-        </button>
-      </form>
-
-      <p className="analyzeDisclaimer">
-        <strong>Educational AI Market Assessment.</strong> Exion provides analytical
-        market intelligence for educational and informational purposes only. It does
-        not provide financial, investment, legal, or tax advice, nor a recommendation
-        to buy, sell, or hold any asset. Trading and investing involve risk, including
-        the possible loss of capital.
-      </p>
-
-      {pendingSymbol && !consented && (
-        <div className="analyzeResult analyzeConsent">
-          <label>
-            <input type="checkbox" onChange={acceptConsent} />
-            <span>
-              I understand this analysis is provided for educational purposes only and
-              is not financial advice.
-            </span>
-          </label>
-        </div>
-      )}
-
-      <div className="symbols analyzeChips">
-        {chips.map((chip) => (
-          <span
-            key={chip}
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              setQuery(chip);
-              void analyze(chip);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                setQuery(chip);
-                void analyze(chip);
-              }
-            }}
-          >
-            {chip}
-          </span>
-        ))}
-      </div>
-
-      {error && <p className="analyzeError">{error}</p>}
-
-      {result && !result.allowed && (
-        <div className="analyzeResult analyzeLimit">
-          <p>
-            <Sparkles size={15} /> That&apos;s today&apos;s complimentary assessment —
-            thanks for exploring with Exion.
-            {result.resetAt
-              ? ` A fresh one unlocks ${formatReset(result.resetAt)}, and`
-              : " And"}{" "}
-            Beta members enjoy unlimited assessments anytime.
-          </p>
-          <DemoVsBeta />
-          <a href={registerUrl} className="button small">
-            Continue with the free Beta <ArrowRight size={15} />
-          </a>
-        </div>
-      )}
-
-      {result?.allowed && result.found === false && (
-        <div className="analyzeResult">
-          <p>{result.message}</p>
-          <p className="analyzeSubsetNote">
-            The complimentary demo showcases a subset of Exion&apos;s live market
-            assessments. The full{" "}
-            <a href={registerUrl}>Krypnova Beta</a> supports a much broader market
-            universe.
-          </p>
-          <DemoVsBeta />
-          <a href={registerUrl} className="button small">
-            Continue with the free Beta <ArrowRight size={15} />
-          </a>
-          {result.suggestions && result.suggestions.length > 0 && (
-            <>
-              <p className="analyzeSuggestLabel">
-                Or explore one Exion is watching right now:
-              </p>
-              <div className="symbols analyzeChips">
-                {result.suggestions.map((suggestion) => (
-                  <span
-                    key={suggestion}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      setQuery(formatPair(suggestion));
-                      void analyze(suggestion);
-                    }}
-                  >
-                    {formatPair(suggestion)}
-                  </span>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {result?.allowed && result.found && (
-        <div className="analyzeResult">
-          <div className="analyzeResultTop">
-            <div>
-              <strong>{formatPair(result.symbol ?? "")}</strong>
-              <small>
-                {result.exchange} · Paper mode
-                {result.updatedAt ? ` · as of ${formatAgo(result.updatedAt)}` : ""}
-              </small>
-            </div>
-            <b className={`analyzeSignal analyze${result.signal}`}>{result.signal}</b>
-          </div>
-          {typeof result.price === "number" && (
-            <p className="analyzePrice">{formatPrice(result.price)}</p>
-          )}
-
-          <div className="analyzeTiles">
-            {result.marketBias && (
-              <div className="analyzeTile">
-                <span>Market</span>
-                <strong
-                  className={
-                    result.marketBias === "long"
-                      ? "analyzeBull"
-                      : result.marketBias === "short"
-                        ? "analyzeBear"
-                        : undefined
-                  }
-                >
-                  {result.marketBias === "long"
-                    ? "Bullish"
-                    : result.marketBias === "short"
-                      ? "Bearish"
-                      : "Neutral"}
-                </strong>
-              </div>
-            )}
-            {result.auctionState && (
-              <div className="analyzeTile">
-                <span>Auction</span>
-                <strong>{prettyAuction(result.auctionState)}</strong>
-              </div>
-            )}
-            {typeof result.confidence === "number" && result.confidence > 0 && (
-              <div className="analyzeTile">
-                <span>Confidence</span>
-                <strong>{result.confidence}%</strong>
-              </div>
-            )}
-            {typeof result.expectedRoi === "number" && result.expectedRoi !== 0 && (
-              <div className="analyzeTile">
-                <span>Expected ROI</span>
-                <strong>
-                  {result.expectedRoi > 0 ? "+" : ""}
-                  {result.expectedRoi}%
-                </strong>
-              </div>
-            )}
-            {typeof result.todayChange === "number" && (
-              <div className="analyzeTile">
-                <span>Today</span>
-                <strong className={result.todayChange >= 0 ? "analyzeBull" : "analyzeBear"}>
-                  {result.todayChange >= 0 ? "+" : ""}
-                  {result.todayChange.toFixed(2)}%
-                </strong>
-              </div>
-            )}
-            {typeof result.volume === "number" && result.volume > 0 && (
-              <div className="analyzeTile">
-                <span>Volume</span>
-                <strong>
-                  {new Intl.NumberFormat("en", { notation: "compact" }).format(result.volume)}
-                </strong>
-              </div>
-            )}
-          </div>
-
-          <p>{result.summary}</p>
-
-          <div className="analyzeLevels">
-            <p>Key Levels — members only</p>
-            <div>
-              {["Support", "Resistance", "Buy Trigger", "Risk Level"].map((level) => (
-                <span key={level}>
-                  {level} <Lock size={12} />
-                </span>
-              ))}
-            </div>
-          </div>
-          {result.counted === false && (
-            <p className="analyzeFreeNote">
-              <Gift size={14} /> That one was on the house — your complimentary
-              assessment is still yours to use. Explore another market anytime.
-            </p>
-          )}
-          <a href={registerUrl} className="button small">
-            Unlock Exion AI <ArrowRight size={15} />
-          </a>
-          <p className="analyzeDisclaimer">
-            This assessment is generated for informational and educational purposes
-            only. It is not a recommendation to buy, sell, or hold any financial asset.
-            Trading and investing involve risk, including the possible loss of
-            principal.
-          </p>
-        </div>
-      )}
-    </>
-  );
+  return <>
+    <label htmlFor="analyze-symbol">{t.title}</label><p className="analyzeSub">{t.sub}</p>
+    <form className="symbols" onSubmit={onSubmit}><input id="analyze-symbol" className="analyzeInput" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="BTC, ETH, SOL…" maxLength={15} autoComplete="off" /><button type="submit" disabled={loading}>{loading ? t.analyzing : t.analyze}</button></form>
+    <p className="analyzeDisclaimer"><strong>{t.edu}</strong> {t.disclaimer}</p>
+    {pendingSymbol && !consented && <div className="analyzeResult analyzeConsent"><label><input type="checkbox" onChange={acceptConsent} /><span>{t.consent}</span></label></div>}
+    <div className="symbols analyzeChips">{chips.map((chip) => <span key={chip} role="button" tabIndex={0} onClick={() => { setQuery(chip); void analyze(chip); }} onKeyDown={(e) => { if (e.key === "Enter") { setQuery(chip); void analyze(chip); } }}>{chip}</span>)}</div>
+    {error && <p className="analyzeError">{error}</p>}
+    {result && !result.allowed && <div className="analyzeResult analyzeLimit"><p><Sparkles size={15} /> {t.quota} {t.quotaTail}</p><DemoVsBeta locale={locale} /><a href={registerUrl} className="button small">{t.continue} <ArrowRight size={15} /></a></div>}
+    {result?.allowed && result.found === false && <div className="analyzeResult"><p>{result.message}</p><p className="analyzeSubsetNote">{t.subset}</p><DemoVsBeta locale={locale} /><a href={registerUrl} className="button small">{t.continue} <ArrowRight size={15} /></a>{result.suggestions && result.suggestions.length > 0 && <><p className="analyzeSuggestLabel">{t.explore}</p><div className="symbols analyzeChips">{result.suggestions.map((s) => <span key={s} role="button" tabIndex={0} onClick={() => { setQuery(formatPair(s)); void analyze(s); }}>{formatPair(s)}</span>)}</div></>}</div>}
+    {result?.allowed && result.found && <div className="analyzeResult"><div className="analyzeResultTop"><div><strong>{formatPair(result.symbol ?? "")}</strong><small>{result.exchange} · {t.paper}{result.updatedAt ? ` · ${t.asOf} ${formatAgo(result.updatedAt, locale)}` : ""}</small></div><b className={`analyzeSignal analyze${result.signal}`}>{result.signal}</b></div>{typeof result.price === "number" && <p className="analyzePrice">{formatPrice(result.price, locale)}</p>}<div className="analyzeTiles">{result.marketBias && <div className="analyzeTile"><span>{t.market}</span><strong className={result.marketBias === "long" ? "analyzeBull" : result.marketBias === "short" ? "analyzeBear" : undefined}>{result.marketBias === "long" ? t.bullish : result.marketBias === "short" ? t.bearish : t.neutral}</strong></div>}{result.auctionState && <div className="analyzeTile"><span>{t.auction}</span><strong>{prettyAuction(result.auctionState)}</strong></div>}{typeof result.confidence === "number" && result.confidence > 0 && <div className="analyzeTile"><span>{t.confidence}</span><strong>{result.confidence}%</strong></div>}{typeof result.expectedRoi === "number" && result.expectedRoi !== 0 && <div className="analyzeTile"><span>{t.roi}</span><strong>{result.expectedRoi > 0 ? "+" : ""}{result.expectedRoi}%</strong></div>}{typeof result.todayChange === "number" && <div className="analyzeTile"><span>{t.today}</span><strong className={result.todayChange >= 0 ? "analyzeBull" : "analyzeBear"}>{result.todayChange >= 0 ? "+" : ""}{result.todayChange.toFixed(2)}%</strong></div>}{typeof result.volume === "number" && result.volume > 0 && <div className="analyzeTile"><span>{t.volume}</span><strong>{new Intl.NumberFormat(intlLocale(locale), { notation: "compact" }).format(result.volume)}</strong></div>}</div><p>{result.summary}</p><div className="analyzeLevels"><p>{t.levels}</p><div>{[t.support, t.resistance, t.trigger, t.risk].map((level) => <span key={level}>{level} <Lock size={12} /></span>)}</div></div>{result.counted === false && <p className="analyzeFreeNote"><Gift size={14} /> {t.gift}</p>}<a href={registerUrl} className="button small">{t.unlock} <ArrowRight size={15} /></a><p className="analyzeDisclaimer">{t.resultDisclaimer}</p></div>}
+  </>;
 }
 
-function formatPair(value: string): string {
-  if (!value || value.includes("/")) return value;
-  if (value.includes("-")) return value.replace("-", "/");
-  const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
-  if (kraken) {
-    const base = kraken[1] === "XBT" ? "BTC" : kraken[1];
-    return `${base}/${kraken[2]}`;
-  }
-  const quote = ["USDT", "USDC", "USD", "EUR"].find(
-    (item) => value.endsWith(item) && value.length > item.length,
-  );
-  return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
-}
-
-function DemoVsBeta() {
-  return (
-    <div className="analyzeCompare">
-      <div className="analyzeCompareCol">
-        <p>Public Demo</p>
-        <ul>
-          <li>• Selected live assessments</li>
-          <li>• One complimentary analysis every 24 hours</li>
-        </ul>
-      </div>
-      <div className="analyzeCompareCol analyzeCompareBeta">
-        <p>Inside Krypnova Beta</p>
-        <ul>
-          <li><Check size={14} /> Search the full supported market universe</li>
-          <li><Check size={14} /> Live AI Copilot</li>
-          <li><Check size={14} /> Full execution plans</li>
-          <li><Check size={14} /> Unlimited market assessments</li>
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function prettyAuction(value: string): string {
-  const text = value.replace(/_/g, " ");
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-function formatPrice(value: number): string {
-  const fractionDigits = value >= 1000 ? 2 : value >= 1 ? 4 : 6;
-  return `$${value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: fractionDigits,
-  })}`;
-}
-
-function formatAgo(value: string): string {
-  const ms = Date.now() - new Date(value).getTime();
-  if (Number.isNaN(ms) || ms < 0) return "just now";
-  const minutes = Math.round(ms / 60_000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.round(hours / 24)}d ago`;
-}
-
-function formatReset(value: string): string {
-  const ms = new Date(value).getTime() - Date.now();
-  if (Number.isNaN(ms) || ms <= 0) return "soon";
-  const hours = Math.floor(ms / 3_600_000);
-  const minutes = Math.round((ms % 3_600_000) / 60_000);
-  if (hours <= 0) return `in ${minutes}m`;
-  return `in ${hours}h ${minutes}m`;
-}
+function DemoVsBeta({ locale }: { locale: Locale }) { const t = copy[locale]; return <div className="analyzeCompare"><div className="analyzeCompareCol"><p>{t.publicDemo}</p><ul><li>• {t.demo1}</li><li>• {t.demo2}</li></ul></div><div className="analyzeCompareCol analyzeCompareBeta"><p>{t.inside}</p><ul><li><Check size={14} /> {t.beta1}</li><li><Check size={14} /> {t.beta2}</li><li><Check size={14} /> {t.beta3}</li><li><Check size={14} /> {t.beta4}</li></ul></div></div>; }
+function formatPair(value: string) { if (!value || value.includes("/")) return value; if (value.includes("-")) return value.replace("-", "/"); const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/); if (kraken) return `${kraken[1] === "XBT" ? "BTC" : kraken[1]}/${kraken[2]}`; const quote = ["USDT", "USDC", "USD", "EUR"].find((item) => value.endsWith(item) && value.length > item.length); return quote ? `${value.slice(0, -quote.length)}/${quote}` : value; }
+function prettyAuction(value: string) { const text = value.replace(/_/g, " "); return text.charAt(0).toUpperCase() + text.slice(1); }
+function intlLocale(locale: Locale) { return locale === "en" ? "en-US" : locale === "pt" ? "pt-BR" : locale; }
+function formatPrice(value: number, locale: Locale) { const digits = value >= 1000 ? 2 : value >= 1 ? 4 : 6; return `$${value.toLocaleString(intlLocale(locale), { minimumFractionDigits: 2, maximumFractionDigits: digits })}`; }
+function formatAgo(value: string, locale: Locale) { const ms = Date.now() - new Date(value).getTime(); if (Number.isNaN(ms) || ms < 0) return new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: "auto" }).format(0, "second"); const minutes = Math.round(ms / 60_000); const rtf = new Intl.RelativeTimeFormat(intlLocale(locale), { numeric: "auto" }); if (minutes < 1) return rtf.format(0, "second"); if (minutes < 60) return rtf.format(-minutes, "minute"); const hours = Math.round(minutes / 60); if (hours < 24) return rtf.format(-hours, "hour"); return rtf.format(-Math.round(hours / 24), "day"); }
