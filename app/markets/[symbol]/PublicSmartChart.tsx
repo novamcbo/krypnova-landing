@@ -19,6 +19,7 @@ const VOL_TOP = 446;
 const VOL_BOTTOM = 530;
 const LEFT = 48;
 const RIGHT = 40;
+const MIN_RENDERABLE_CANDLES = 4;
 
 function ema(values: number[], period: number): number[] {
   if (!values.length) return [];
@@ -46,7 +47,7 @@ function linePath(points: Point[]): string {
 }
 
 export default function PublicSmartChart({ symbol, exchange, candles, signal }: Props) {
-  if (candles.length < 12) {
+  if (candles.length < MIN_RENDERABLE_CANDLES) {
     return (
       <section className={styles.shell} aria-label={`${symbol} public smart chart`}>
         <div className={styles.header}>
@@ -58,7 +59,7 @@ export default function PublicSmartChart({ symbol, exchange, candles, signal }: 
         </div>
         <div className={styles.empty}>
           <strong>Market chart is synchronizing.</strong>
-          <span>Exion intelligence remains available above while the public candle feed reconnects.</span>
+          <span>Exion intelligence remains available while Krypnova reconnects the market candle feed.</span>
         </div>
       </section>
     );
@@ -84,7 +85,7 @@ export default function PublicSmartChart({ symbol, exchange, candles, signal }: 
   const yVol = (volume: number) => VOL_BOTTOM - (volume / maxVolume) * (VOL_BOTTOM - VOL_TOP);
 
   const ema21 = ema(closes, 21).map((value, index) => ({ x: x(index), y: y(value) }));
-  const recent = view.slice(-24);
+  const recent = view.slice(-Math.min(24, view.length));
   const support = Math.min(...recent.map((c) => c.low));
   const resistance = Math.max(...recent.map((c) => c.high));
   const last = view.at(-1)!;
