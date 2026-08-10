@@ -32,7 +32,7 @@ async function fetchJson(url: string): Promise<unknown> {
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json" },
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
       signal: controller.signal,
     });
     if (!response.ok) return null;
