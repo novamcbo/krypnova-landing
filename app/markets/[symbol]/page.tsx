@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
 import { buildSnapshotSummary, buildSummary, isAssessed } from "@/lib/analyze";
 import { findMarketSnapshot, findSymbolSignal } from "@/lib/live-signals";
-import { findPublicCandles } from "@/lib/public-candles";
+import { findPublicCandleFeed, snapshotFromCandleFeed } from "@/lib/public-candles";
 import { findPublicCryptoSnapshot } from "@/lib/public-market-fallback";
 import PublicSmartChart from "./PublicSmartChart";
 import styles from "./symbol.module.css";
@@ -44,24 +44,33 @@ function assetSeoTitle(name: string, symbol: string): string {
   return `${name} (${symbol}) Analysis Today – Price, Signals & Market Outlook`;
 }
 
-async function loadAsset(symbol: string) {
+async function loadSignal(symbol: string) {
   try {
-    const [signal, internalSnapshot] = await Promise.all([
-      findSymbolSignal(symbol),
-      findMarketSnapshot(symbol),
-    ]);
-    const snapshot = internalSnapshot ?? (await findPublicCryptoSnapshot(symbol));
-    return { signal, snapshot };
+    return await findSymbolSignal(symbol);
   } catch {
-    const snapshot = await findPublicCryptoSnapshot(symbol);
-    return { signal: null, snapshot };
+    return null;
+  }
+}
+
+async function loadFallbackSnapshot(symbol: string) {
+  try {
+    const internalSnapshot = await findMarketSnapshot(symbol);
+    if (internalSnapshot) return internalSnapshot;
+  } catch {
+    // Continue to the public crypto fallback below.
+  }
+
+  try {
+    return await findPublicCryptoSnapshot(symbol);
+  } catch {
+    return null;
   }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const asset = assetFromSlug(params.symbol);
   const knownAsset = Boolean(trackedAssets[params.symbol.toLowerCase()]);
-  const { signal } = await loadAsset(asset.symbol);
+  const signal = await loadSignal(asset.symbol);
   const canonical = `/markets/${params.symbol.toLowerCase()}`;
   const title = assetSeoTitle(asset.name, asset.symbol);
   const signalText = signal
@@ -93,19 +102,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function SymbolAnalysisPage({ params }: PageProps) {
   const slug = params.symbol.toLowerCase();
   const asset = assetFromSlug(slug);
-  const [{ signal, snapshot }, candles] = await Promise.all([
-    loadAsset(asset.symbol),
-    findPublicCandles(asset.symbol),
-  ]);
-  const updatedAt = signal?.updatedAt ?? snapshot?.updatedAt ?? null;
+  const signal = await loadSignal(asset.symbol);
+  const feed = await findPublicCandleFeed(asset.symbol, signal?.exchange ?? null);
+  const feedSnapshot = feed ? snapshotFromCandleFeed(feed, asset.category) : null;
+  const fallbackSnapshot = feedSnapshot ? null : await loadFallbackSnapshot(asset.symbol);
+  const snapshot = feedSnapshot ?? fallbackSnapshot;
+  const candles = feed?.candles ?? [];
   const assessed = signal ? isAssessed(signal) : false;
-  const analysisSummary = signal
+  const updatedAt = assessed
+    ? signal?.updatedAt ?? snapshot?.updatedAt ?? null
+    : snapshot?.updatedAt ?? signal?.updatedAt ?? null;
+  const analysisSummary = assessed && signal
     ? buildSummary(signal)
     : snapshot
       ? buildSnapshotSummary(snapshot)
-      : null;
+      : signal
+        ? buildSummary(signal)
+        : null;
   const stale = isStale(updatedAt);
-  const chartExchange = asset.category === "Stock" ? "Alpha Vantage" : "Coinbase";
+  const chartExchange = feed?.exchange ?? snapshot?.exchange ?? signal?.exchange ?? "Market";
+  const chartSymbol = feed?.symbol ?? asset.symbol;
   const pageTitle = assetSeoTitle(asset.name, asset.symbol);
 
   const schema = {
@@ -170,28 +186,31 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
         </div>
 
         <PublicSmartChart
-          symbol={asset.symbol}
+          symbol={chartSymbol}
           exchange={chartExchange}
           candles={candles}
           signal={signal}
         />
 
-        {signal ? (
+        {assessed && signal ? (
           <div className={styles.signalCard}>
             <div className={styles.signalTop}>
               <div>
-                <span>{signal.exchange}</span>
+                <span>Exion decision · {signal.exchange}</span>
                 <strong>{formatPair(signal.symbol)}</strong>
               </div>
-              <b className={assessed ? styles.direction : styles.monitoring}>
-                {assessed ? signal.signal : "MONITORING"}
-              </b>
+              <b className={styles.direction}>{signal.signal}</b>
             </div>
 
             {analysisSummary && (
               <div className={styles.analysisSummary}>
                 <span>EXION AI READ</span>
                 <p>{analysisSummary}</p>
+                {snapshot && signal.exchange.toLowerCase() !== snapshot.exchange.toLowerCase() && (
+                  <small>
+                    Market chart source: {snapshot.exchange}. Exion decision source: {signal.exchange}.
+                  </small>
+                )}
                 {stale && (
                   <small>
                     Data note: this is the newest public Exion record currently available for this asset,
@@ -202,9 +221,9 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
             )}
 
             <div className={styles.metrics}>
-              <Metric label="Price" value={formatPrice(signal.price ?? snapshot?.price ?? null)} />
-              <Metric label="AI State" value={assessed ? signal.signal : "Watching"} />
-              <Metric label="Confidence" value={assessed ? formatPercent(signal.confidence) : "Not scored"} />
+              <Metric label="Market Price" value={formatPrice(snapshot?.price ?? signal.price)} />
+              <Metric label="AI State" value={signal.signal} />
+              <Metric label="Confidence" value={formatPercent(signal.confidence)} />
               <Metric label="Expected ROI" value={signal.expectedRoi !== null ? formatSignedPercent(signal.expectedRoi) : "Not scored"} />
               <Metric label="Risk / Reward" value={signal.riskReward !== null ? formatRatio(signal.riskReward) : "Not scored"} />
               <Metric label="Risk Score" value={signal.riskScore !== null ? formatScore(signal.riskScore) : "Not scored"} />
@@ -225,9 +244,13 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
                 <span>MARKET CONTEXT</span>
                 <p>{analysisSummary}</p>
                 <small>
-                  Market data may come from a connected public exchange when Krypnova has no internal
-                  snapshot. Exion has not published a fresh scored LONG/SHORT setup for this asset.
+                  Chart and market context use {snapshot.exchange}. Exion has not published a fresh scored LONG/SHORT setup for this asset.
                 </small>
+                {signal && signal.exchange.toLowerCase() !== snapshot.exchange.toLowerCase() && (
+                  <small>
+                    Exion monitoring record source: {signal.exchange}. It is not being used as the public chart price source.
+                  </small>
+                )}
                 {stale && (
                   <small className={styles.dataNote}>
                     Freshness warning: the newest connected public snapshot is older than six hours.
@@ -243,6 +266,21 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
               <Metric label="Volume" value={formatVolume(snapshot.volume)} />
               <Metric label="Confidence" value="Not scored" />
               <Metric label="Risk Model" value="Awaiting setup" />
+            </div>
+          </div>
+        ) : signal ? (
+          <div className={styles.signalCard}>
+            <div className={styles.signalTop}>
+              <div>
+                <span>Exion monitoring · {signal.exchange}</span>
+                <strong>{formatPair(signal.symbol)}</strong>
+              </div>
+              <b className={styles.monitoring}>MONITORING</b>
+            </div>
+            <div className={styles.analysisSummary}>
+              <span>EXION AI READ</span>
+              <p>{analysisSummary}</p>
+              <small>Public candle data is currently unavailable, so no alternate exchange price is being presented as if it were the Exion source.</small>
             </div>
           </div>
         ) : (
