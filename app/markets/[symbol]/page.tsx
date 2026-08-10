@@ -4,7 +4,9 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
 import { buildSnapshotSummary, buildSummary, isAssessed } from "@/lib/analyze";
 import { findMarketSnapshot, findSymbolSignal } from "@/lib/live-signals";
+import { findPublicCandles } from "@/lib/public-candles";
 import { findPublicCryptoSnapshot } from "@/lib/public-market-fallback";
+import PublicSmartChart from "./PublicSmartChart";
 import styles from "./symbol.module.css";
 
 export const revalidate = 300;
@@ -86,7 +88,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function SymbolAnalysisPage({ params }: PageProps) {
   const slug = params.symbol.toLowerCase();
   const asset = assetFromSlug(slug);
-  const { signal, snapshot } = await loadAsset(asset.symbol);
+  const [{ signal, snapshot }, candles] = await Promise.all([
+    loadAsset(asset.symbol),
+    findPublicCandles(asset.symbol),
+  ]);
   const updatedAt = signal?.updatedAt ?? snapshot?.updatedAt ?? null;
   const assessed = signal ? isAssessed(signal) : false;
   const analysisSummary = signal
@@ -95,6 +100,7 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
       ? buildSnapshotSummary(snapshot)
       : null;
   const stale = isStale(updatedAt);
+  const chartExchange = asset.category === "Stock" ? "Alpha Vantage" : "Coinbase";
 
   const schema = {
     "@context": "https://schema.org",
@@ -156,6 +162,13 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
             {updatedAt ? `Updated ${formatDate(updatedAt)}` : "Awaiting market data"}
           </span>
         </div>
+
+        <PublicSmartChart
+          symbol={asset.symbol}
+          exchange={chartExchange}
+          candles={candles}
+          signal={signal}
+        />
 
         {signal ? (
           <div className={styles.signalCard}>
