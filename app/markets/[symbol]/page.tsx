@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
 import { buildSnapshotSummary, buildSummary, isAssessed } from "@/lib/analyze";
 import { findMarketSnapshot, findSymbolSignal } from "@/lib/live-signals";
+import { findPublicCryptoSnapshot } from "@/lib/public-market-fallback";
 import styles from "./symbol.module.css";
 
 export const revalidate = 300;
@@ -39,13 +40,15 @@ function assetFromSlug(raw: string) {
 
 async function loadAsset(symbol: string) {
   try {
-    const [signal, snapshot] = await Promise.all([
+    const [signal, internalSnapshot] = await Promise.all([
       findSymbolSignal(symbol),
       findMarketSnapshot(symbol),
     ]);
+    const snapshot = internalSnapshot ?? (await findPublicCryptoSnapshot(symbol));
     return { signal, snapshot };
   } catch {
-    return { signal: null, snapshot: null };
+    const snapshot = await findPublicCryptoSnapshot(symbol);
+    return { signal: null, snapshot };
   }
 }
 
@@ -200,11 +203,11 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
 
             {analysisSummary && (
               <div className={styles.analysisSummary}>
-                <span>EXION AI MARKET CONTEXT</span>
+                <span>MARKET CONTEXT</span>
                 <p>{analysisSummary}</p>
                 <small>
-                  No fresh scored LONG/SHORT setup is present in the public Exion feed, so Krypnova
-                  does not fabricate confidence, ROI or risk values.
+                  Market data may come from a connected public exchange when Krypnova has no internal
+                  snapshot. Exion has not published a fresh scored LONG/SHORT setup for this asset.
                 </small>
                 {stale && (
                   <small className={styles.dataNote}>
