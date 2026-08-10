@@ -46,6 +46,22 @@ function linePath(points: Point[]): string {
   return points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
 }
 
+function structuralRange(view: PublicCandle[], lastPrice: number): PublicCandle[] {
+  const recent = view.slice(-Math.min(24, view.length));
+  const recentLow = Math.min(...recent.map((c) => c.low));
+  const recentHigh = Math.max(...recent.map((c) => c.high));
+  const recentSpread = lastPrice > 0 ? (recentHigh - recentLow) / lastPrice : 0;
+
+  // Snapshot-derived fallback bars can be very flat near the latest price.
+  // When that happens, use the broader visible range so support/resistance do
+  // not collapse onto the current-price line and imply false precision.
+  if (recentSpread < 0.004 && view.length > recent.length) {
+    return view;
+  }
+
+  return recent;
+}
+
 export default function PublicSmartChart({ symbol, exchange, candles, signal }: Props) {
   if (candles.length < MIN_RENDERABLE_CANDLES) {
     return (
@@ -85,10 +101,10 @@ export default function PublicSmartChart({ symbol, exchange, candles, signal }: 
   const yVol = (volume: number) => VOL_BOTTOM - (volume / maxVolume) * (VOL_BOTTOM - VOL_TOP);
 
   const ema21 = ema(closes, 21).map((value, index) => ({ x: x(index), y: y(value) }));
-  const recent = view.slice(-Math.min(24, view.length));
-  const support = Math.min(...recent.map((c) => c.low));
-  const resistance = Math.max(...recent.map((c) => c.high));
   const last = view.at(-1)!;
+  const structure = structuralRange(view, last.close);
+  const support = Math.min(...structure.map((c) => c.low));
+  const resistance = Math.max(...structure.map((c) => c.high));
   const assessed = Boolean(signal && (signal.confidence || signal.alpha));
   const label = signalLabel(signal);
   const signalClass = assessed && signal?.signal === "LONG"
