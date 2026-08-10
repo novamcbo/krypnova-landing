@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
+import DailyAnalysisGrid from "@/app/components/DailyAnalysisGrid";
 import LiveSignals from "@/app/components/LiveSignals";
 import styles from "./markets.module.css";
 
@@ -41,12 +42,12 @@ export default function MarketsPage() {
           LONG, SHORT, WATCH, or REJECT when conditions are not strong enough.
         </p>
         <div className={styles.heroActions}>
-          <a href="#live-signals" className={styles.primaryButton}>
-            View Live Intelligence <ArrowRight size={17} />
+          <a href="#daily-ai-market-analysis" className={styles.primaryButton}>
+            View Daily Analysis <ArrowRight size={17} />
           </a>
-          <Link href="https://app.krypnova.com" className={styles.secondaryButton}>
-            Open Krypnova
-          </Link>
+          <a href="#live-signals" className={styles.secondaryButton}>
+            View Live Intelligence
+          </a>
         </div>
 
         <div className={styles.trustBar}>
@@ -55,6 +56,8 @@ export default function MarketsPage() {
           <span><Sparkles size={18} /> Multi-market monitoring</span>
         </div>
       </section>
+
+      <DailyAnalysisGrid />
 
       <div id="live-signals">
         <LiveSignals />
