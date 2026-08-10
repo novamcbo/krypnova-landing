@@ -166,7 +166,10 @@ function alpacaCredentials(): { key: string; secret: string } | null {
 
 async function alpacaStockFeed(symbol: string): Promise<PublicCandleFeed | null> {
   const credentials = alpacaCredentials();
-  if (!credentials) return null;
+  if (!credentials) {
+    console.warn(`[public-candles] Alpaca credentials unavailable for ${symbol}`);
+    return null;
+  }
 
   const url = new URL(`${ALPACA_DATA_URL}/v2/stocks/${symbol}/bars`);
   url.searchParams.set("timeframe", "1Hour");
@@ -180,9 +183,15 @@ async function alpacaStockFeed(symbol: string): Promise<PublicCandleFeed | null>
       "APCA-API-SECRET-KEY": credentials.secret,
     },
   });
-  if (!data || typeof data !== "object") return null;
+  if (!data || typeof data !== "object") {
+    console.warn(`[public-candles] Alpaca bars unavailable for ${symbol}`);
+    return null;
+  }
   const bars = (data as Record<string, unknown>).bars;
-  if (!Array.isArray(bars)) return null;
+  if (!Array.isArray(bars)) {
+    console.warn(`[public-candles] Alpaca bars payload missing for ${symbol}`);
+    return null;
+  }
 
   const candles = bars
     .map((row): PublicCandle | null => {
@@ -209,7 +218,10 @@ async function alpacaStockFeed(symbol: string): Promise<PublicCandleFeed | null>
     .sort((a, b) => Date.parse(a.time) - Date.parse(b.time))
     .slice(-120);
 
-  if (candles.length < 12) return null;
+  if (candles.length < 12) {
+    console.warn(`[public-candles] Alpaca returned only ${candles.length} valid bars for ${symbol}`);
+    return null;
+  }
   return { exchange: "Alpaca", symbol, candles };
 }
 
