@@ -40,6 +40,10 @@ function assetFromSlug(raw: string) {
   };
 }
 
+function assetSeoTitle(name: string, symbol: string): string {
+  return `${name} (${symbol}) Analysis Today – Price, Signals & Market Outlook`;
+}
+
 async function loadAsset(symbol: string) {
   try {
     const [signal, internalSnapshot] = await Promise.all([
@@ -59,26 +63,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const knownAsset = Boolean(trackedAssets[params.symbol.toLowerCase()]);
   const { signal } = await loadAsset(asset.symbol);
   const canonical = `/markets/${params.symbol.toLowerCase()}`;
+  const title = assetSeoTitle(asset.name, asset.symbol);
   const signalText = signal
-    ? ` Latest Exion AI signal: ${signal.signal}${signal.confidence !== null ? ` with ${Math.round(signal.confidence)}% confidence` : ""}.`
+    ? ` Latest Exion signal: ${signal.signal}${signal.confidence !== null ? ` with ${Math.round(signal.confidence)}% confidence` : ""}.`
     : "";
-  const description = `${asset.name} (${asset.symbol}) AI market analysis from Krypnova. Review signal direction, confidence, expected ROI, risk/reward and risk score, refreshed throughout the day.${signalText}`;
+  const description = `${asset.name} (${asset.symbol}) price, market analysis, trading signals and market outlook from Krypnova. View live chart context and Exion intelligence refreshed throughout the day.${signalText}`;
 
   return {
-    title: `${asset.name} (${asset.symbol}) AI Analysis Today`,
+    title,
     description,
     alternates: { canonical },
     robots: knownAsset ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       type: "article",
       url: `${siteUrl}${canonical}`,
-      title: `${asset.name} (${asset.symbol}) AI Analysis Today | Krypnova`,
+      title: `${title} | Krypnova`,
       description,
       images: ["/krypnova-logo.jpeg"],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${asset.name} (${asset.symbol}) AI Analysis Today | Krypnova`,
+      title: `${title} | Krypnova`,
       description,
       images: ["/krypnova-logo.jpeg"],
     },
@@ -101,12 +106,13 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
       : null;
   const stale = isStale(updatedAt);
   const chartExchange = asset.category === "Stock" ? "Alpha Vantage" : "Coinbase";
+  const pageTitle = assetSeoTitle(asset.name, asset.symbol);
 
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${asset.name} (${asset.symbol}) AI Market Analysis`,
-    description: `AI-powered ${asset.name} market analysis from Krypnova and Exion AI.`,
+    name: pageTitle,
+    description: `${asset.name} (${asset.symbol}) price, chart, market signals, outlook and Exion intelligence from Krypnova.`,
     url: `${siteUrl}/markets/${slug}`,
     dateModified: updatedAt ?? undefined,
     isPartOf: {
@@ -138,7 +144,7 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
           <Sparkles size={15} /> Exion AI Symbol Intelligence
         </div>
         <p className={styles.eyebrow}>{asset.category} · {asset.symbol}</p>
-        <h1>{asset.name} ({asset.symbol}) AI Analysis Today</h1>
+        <h1>{pageTitle}</h1>
         <p className={styles.lead}>
           Krypnova uses Exion AI to evaluate the latest public market context for {asset.name}.
           When Exion has a scored setup, this page shows the signal, confidence and risk metrics.
