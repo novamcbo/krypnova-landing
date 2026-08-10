@@ -1,4 +1,5 @@
 import { baseAsset } from "@/lib/live-signals";
+import { findSnapshotCandleFeed } from "@/lib/public-snapshot-candles";
 import type { MarketSnapshot } from "@/lib/signal-types";
 
 export type PublicCandle = {
@@ -11,7 +12,7 @@ export type PublicCandle = {
 };
 
 export type PublicCandleFeed = {
-  exchange: "Kraken" | "Alpaca" | "Coinbase";
+  exchange: string;
   symbol: string;
   candles: PublicCandle[];
 };
@@ -243,6 +244,19 @@ async function coinbaseCryptoFeed(symbol: string): Promise<PublicCandleFeed | nu
   return { exchange: "Coinbase", symbol: `${symbol}/USD`, candles };
 }
 
+async function snapshotHistoryFeed(
+  symbol: string,
+  preferredExchange?: string | null,
+): Promise<PublicCandleFeed | null> {
+  const feed = await findSnapshotCandleFeed(symbol, preferredExchange);
+  if (!feed || feed.candles.length < 4) return null;
+  return {
+    exchange: feed.exchange,
+    symbol: feed.symbol,
+    candles: feed.candles,
+  };
+}
+
 async function firstFeed(loaders: Array<() => Promise<PublicCandleFeed | null>>): Promise<PublicCandleFeed | null> {
   for (const loader of loaders) {
     const feed = await loader();
@@ -263,11 +277,13 @@ export async function findPublicCandleFeed(
       return firstFeed([
         () => coinbaseCryptoFeed(symbol),
         () => krakenCryptoFeed(symbol),
+        () => snapshotHistoryFeed(symbol, preferredExchange),
       ]);
     }
     return firstFeed([
       () => krakenCryptoFeed(symbol),
       () => coinbaseCryptoFeed(symbol),
+      () => snapshotHistoryFeed(symbol, preferredExchange),
     ]);
   }
 
@@ -276,15 +292,17 @@ export async function findPublicCandleFeed(
       return firstFeed([
         () => krakenTokenizedStockFeed(symbol),
         () => alpacaStockFeed(symbol),
+        () => snapshotHistoryFeed(symbol, preferredExchange),
       ]);
     }
     return firstFeed([
       () => alpacaStockFeed(symbol),
       () => krakenTokenizedStockFeed(symbol),
+      () => snapshotHistoryFeed(symbol, preferredExchange),
     ]);
   }
 
-  return null;
+  return snapshotHistoryFeed(symbol, preferredExchange);
 }
 
 function newYorkDate(value: string): string {
