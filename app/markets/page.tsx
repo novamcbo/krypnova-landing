@@ -41,12 +41,12 @@ export default function MarketsPage() {
           LONG, SHORT, WATCH, or REJECT when conditions are not strong enough.
         </p>
         <div className={styles.heroActions}>
-          <a href="#live-signals" className={styles.primaryButton}>
-            View Live Intelligence <ArrowRight size={17} />
+          <a href="#daily-ai-market-analysis" className={styles.primaryButton}>
+            View Daily Analysis <ArrowRight size={17} />
           </a>
-          <Link href="https://app.krypnova.com" className={styles.secondaryButton}>
-            Open Krypnova
-          </Link>
+          <a href="#live-signals" className={styles.secondaryButton}>
+            View Live Intelligence
+          </a>
         </div>
 
         <div className={styles.trustBar}>

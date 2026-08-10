@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
+import LanguageSwitcher from "./components/LanguageSwitcher";
+import { alternateLanguages, isLocale } from "@/lib/i18n";
 import "./globals.css";
 
 const siteUrl = "https://www.krypnova.com";
@@ -10,28 +13,14 @@ const defaultDescription =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: defaultTitle,
-    template: "%s | Krypnova",
-  },
+  title: { default: defaultTitle, template: "%s | Krypnova" },
   description: defaultDescription,
   applicationName: siteName,
-  keywords: [
-    "AI trading intelligence",
-    "market analysis",
-    "crypto analysis",
-    "stock analysis",
-    "risk intelligence",
-    "portfolio intelligence",
-    "Exion AI",
-    "Krypnova",
-  ],
+  keywords: ["AI trading intelligence", "market analysis", "crypto analysis", "stock analysis", "risk intelligence", "portfolio intelligence", "Exion AI", "Krypnova"],
   authors: [{ name: siteName }],
   creator: siteName,
   publisher: siteName,
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/", languages: alternateLanguages("/") },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -39,43 +28,21 @@ export const metadata: Metadata = {
     siteName,
     title: defaultTitle,
     description: defaultDescription,
-    images: [
-      {
-        url: "/krypnova-logo.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "Krypnova AI Trading Intelligence",
-      },
-    ],
+    images: [{ url: "/krypnova-logo.jpeg", width: 1200, height: 630, alt: "Krypnova AI Trading Intelligence" }],
   },
-  twitter: {
-    card: "summary_large_image",
-    title: defaultTitle,
-    description: defaultDescription,
-    images: ["/krypnova-logo.jpeg"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
-    },
-  },
+  twitter: { card: "summary_large_image", title: defaultTitle, description: defaultDescription, images: ["/krypnova-logo.jpeg"] },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const requestedLocale = headers().get("x-krypnova-locale") ?? "en";
+  const lang = isLocale(requestedLocale) ? requestedLocale : "en";
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <body>
         {children}
+        <LanguageSwitcher />
         <Analytics />
       </body>
     </html>
