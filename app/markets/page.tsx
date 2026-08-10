@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
-import DailyAnalysisGrid from "@/app/components/DailyAnalysisGrid";
 import LiveSignals from "@/app/components/LiveSignals";
 import styles from "./markets.module.css";
 
@@ -56,8 +55,6 @@ export default function MarketsPage() {
           <span><Sparkles size={18} /> Multi-market monitoring</span>
         </div>
       </section>
-
-      <DailyAnalysisGrid />
 
       <div id="live-signals">
         <LiveSignals />
