@@ -141,7 +141,7 @@ async function queryHistory(
     .sort((a, b) => b[1].length - a[1].length)[0]?.[1];
   if (!selected?.length) return null;
 
-  const candles = selected
+  const rawCandles = selected
     .map((row): SnapshotCandle | null => {
       const open = finite(row.open);
       const high = finite(row.high);
@@ -173,7 +173,20 @@ async function queryHistory(
     .sort((a, b) => Date.parse(a.time) - Date.parse(b.time))
     .slice(-120);
 
-  if (candles.length < 4) return null;
+  if (rawCandles.length < 4) return null;
+
+  // top_movers_snapshots usually stores session/cumulative volume. Convert it
+  // into a per-interval approximation so the fallback chart does not repeat
+  // the same cumulative total on every hourly bar. If the counter resets, the
+  // current value becomes the first interval volume for the new session.
+  const candles = rawCandles.map((candle, index) => {
+    if (index === 0) return { ...candle, volume: 0 };
+    const previous = rawCandles[index - 1];
+    const delta = candle.volume >= previous.volume
+      ? candle.volume - previous.volume
+      : candle.volume;
+    return { ...candle, volume: Math.max(0, delta) };
+  });
 
   return {
     exchange: displayExchange(selected[0]?.exchange),
