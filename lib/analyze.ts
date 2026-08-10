@@ -125,7 +125,7 @@ export function buildSnapshotSummary(snapshot: MarketSnapshot): string {
       ? `, ${snapshot.pctChange >= 0 ? "up" : "down"} ${Math.abs(snapshot.pctChange).toFixed(2)}% today`
       : "";
 
-  return `${snapshot.symbol} (${snapshot.exchange})${priceClause}${moveClause} — it's on Exion AI's market scanner as one of the session's most active movers. Scored setups with entries, exits and risk guidance live inside Krypnova.`;
+  return `${snapshot.symbol} (${snapshot.exchange})${priceClause}${moveClause}. Krypnova is monitoring this market for new Exion setups. Scored entries, exits and risk guidance appear only when Exion publishes a qualifying decision.`;
 }
 
 export function buildSummary(signal: PublicMarketSignal): string {
