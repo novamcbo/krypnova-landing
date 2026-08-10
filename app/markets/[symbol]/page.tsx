@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BrainCircuit, ShieldCheck, Sparkles } from "lucide-react";
+import { buildSnapshotSummary, buildSummary, isAssessed } from "@/lib/analyze";
 import { findMarketSnapshot, findSymbolSignal } from "@/lib/live-signals";
 import styles from "./symbol.module.css";
 
-export const revalidate = 86_400;
+export const revalidate = 300;
 
 const siteUrl = "https://www.krypnova.com";
+const STALE_AFTER_MS = 6 * 60 * 60 * 1000;
 
 const trackedAssets: Record<
   string,
@@ -55,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const signalText = signal
     ? ` Latest Exion AI signal: ${signal.signal}${signal.confidence !== null ? ` with ${Math.round(signal.confidence)}% confidence` : ""}.`
     : "";
-  const description = `${asset.name} (${asset.symbol}) AI market analysis from Krypnova. Review signal direction, confidence, expected ROI, risk/reward and risk score, refreshed daily.${signalText}`;
+  const description = `${asset.name} (${asset.symbol}) AI market analysis from Krypnova. Review signal direction, confidence, expected ROI, risk/reward and risk score, refreshed throughout the day.${signalText}`;
 
   return {
     title: `${asset.name} (${asset.symbol}) AI Analysis Today`,
@@ -83,12 +85,19 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
   const asset = assetFromSlug(slug);
   const { signal, snapshot } = await loadAsset(asset.symbol);
   const updatedAt = signal?.updatedAt ?? snapshot?.updatedAt ?? null;
+  const assessed = signal ? isAssessed(signal) : false;
+  const analysisSummary = signal
+    ? buildSummary(signal)
+    : snapshot
+      ? buildSnapshotSummary(snapshot)
+      : null;
+  const stale = isStale(updatedAt);
 
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `${asset.name} (${asset.symbol}) AI Market Analysis`,
-    description: `Daily AI-powered ${asset.name} market analysis from Krypnova and Exion AI.`,
+    description: `AI-powered ${asset.name} market analysis from Krypnova and Exion AI.`,
     url: `${siteUrl}/markets/${slug}`,
     dateModified: updatedAt ?? undefined,
     isPartOf: {
@@ -117,14 +126,14 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
 
       <section className={styles.hero}>
         <div className={styles.badge}>
-          <Sparkles size={15} /> Daily Exion AI Symbol Analysis
+          <Sparkles size={15} /> Exion AI Symbol Intelligence
         </div>
         <p className={styles.eyebrow}>{asset.category} · {asset.symbol}</p>
         <h1>{asset.name} ({asset.symbol}) AI Analysis Today</h1>
         <p className={styles.lead}>
-          Krypnova uses Exion AI to evaluate the latest available market signal, confidence,
-          expected return, risk/reward and risk score for {asset.name}. This public page is
-          refreshed daily for search and market-intelligence discovery.
+          Krypnova uses Exion AI to evaluate the latest public market context for {asset.name}.
+          When Exion has a scored setup, this page shows the signal, confidence and risk metrics.
+          When no setup is scored, it shows the latest market context without inventing a trade call.
         </p>
         <div className={styles.actions}>
           <Link href="https://app.krypnova.com" className={styles.primaryButton}>
@@ -138,10 +147,10 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
         <div className={styles.sectionHeader}>
           <div>
             <span className={styles.eyebrow}>Latest assessment</span>
-            <h2>Exion AI signal for {asset.symbol}</h2>
+            <h2>Exion AI read for {asset.symbol}</h2>
           </div>
           <span className={styles.updated}>
-            {updatedAt ? `Updated ${formatDate(updatedAt)}` : "Awaiting fresh market data"}
+            {updatedAt ? `Updated ${formatDate(updatedAt)}` : "Awaiting market data"}
           </span>
         </div>
 
@@ -152,16 +161,31 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
                 <span>{signal.exchange}</span>
                 <strong>{formatPair(signal.symbol)}</strong>
               </div>
-              <b className={styles.direction}>{signal.signal}</b>
+              <b className={assessed ? styles.direction : styles.monitoring}>
+                {assessed ? signal.signal : "MONITORING"}
+              </b>
             </div>
+
+            {analysisSummary && (
+              <div className={styles.analysisSummary}>
+                <span>EXION AI READ</span>
+                <p>{analysisSummary}</p>
+                {stale && (
+                  <small>
+                    Data note: this is the newest public Exion record currently available for this asset,
+                    but it is older than six hours. Treat it as context, not a fresh trade signal.
+                  </small>
+                )}
+              </div>
+            )}
 
             <div className={styles.metrics}>
               <Metric label="Price" value={formatPrice(signal.price ?? snapshot?.price ?? null)} />
-              <Metric label="Confidence" value={formatPercent(signal.confidence)} />
-              <Metric label="Expected ROI" value={formatSignedPercent(signal.expectedRoi)} />
-              <Metric label="Risk / Reward" value={formatRatio(signal.riskReward)} />
-              <Metric label="Risk Score" value={formatScore(signal.riskScore)} />
-              <Metric label="Market Bias" value={signal.marketBias?.toUpperCase() ?? "—"} />
+              <Metric label="AI State" value={assessed ? signal.signal : "Watching"} />
+              <Metric label="Confidence" value={assessed ? formatPercent(signal.confidence) : "Not scored"} />
+              <Metric label="Expected ROI" value={signal.expectedRoi !== null ? formatSignedPercent(signal.expectedRoi) : "Not scored"} />
+              <Metric label="Risk / Reward" value={signal.riskReward !== null ? formatRatio(signal.riskReward) : "Not scored"} />
+              <Metric label="Risk Score" value={signal.riskScore !== null ? formatScore(signal.riskScore) : "Not scored"} />
             </div>
           </div>
         ) : snapshot ? (
@@ -173,20 +197,40 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
               </div>
               <b className={styles.monitoring}>MONITORING</b>
             </div>
+
+            {analysisSummary && (
+              <div className={styles.analysisSummary}>
+                <span>EXION AI MARKET CONTEXT</span>
+                <p>{analysisSummary}</p>
+                <small>
+                  No fresh scored LONG/SHORT setup is present in the public Exion feed, so Krypnova
+                  does not fabricate confidence, ROI or risk values.
+                </small>
+                {stale && (
+                  <small className={styles.dataNote}>
+                    Freshness warning: the newest connected public snapshot is older than six hours.
+                  </small>
+                )}
+              </div>
+            )}
+
             <div className={styles.metrics}>
               <Metric label="Price" value={formatPrice(snapshot.price)} />
               <Metric label="24h Change" value={formatSignedPercent(snapshot.pctChange)} />
-              <Metric label="AI Signal" value="Pending" />
-              <Metric label="Confidence" value="—" />
-              <Metric label="Risk / Reward" value="—" />
-              <Metric label="Risk Score" value="—" />
+              <Metric label="AI State" value="No scored setup" />
+              <Metric label="Volume" value={formatVolume(snapshot.volume)} />
+              <Metric label="Confidence" value="Not scored" />
+              <Metric label="Risk Model" value="Awaiting setup" />
             </div>
           </div>
         ) : (
           <div className={styles.emptyState}>
             <BrainCircuit size={36} />
             <h3>Exion AI is monitoring {asset.symbol}</h3>
-            <p>A fresh public assessment will appear here when the next scored signal is available.</p>
+            <p>
+              No public market record is available right now. Krypnova will show the next connected
+              snapshot or scored Exion assessment here as soon as it becomes available.
+            </p>
           </div>
         )}
       </section>
@@ -194,29 +238,29 @@ export default async function SymbolAnalysisPage({ params }: PageProps) {
       <section className={styles.explainer}>
         <div>
           <span className={styles.eyebrow}>How to read this page</span>
-          <h2>One daily public snapshot, deeper intelligence inside Krypnova.</h2>
+          <h2>Market context first. Scored trade intelligence only when Exion has enough evidence.</h2>
         </div>
         <div className={styles.explainerGrid}>
           <article>
             <BrainCircuit size={28} />
-            <h3>Signal</h3>
-            <p>Exion classifies the latest assessed opportunity as LONG, SHORT, WATCH or REJECT.</p>
+            <h3>AI state</h3>
+            <p>MONITORING means Exion has market context but no fresh scored setup. LONG, SHORT, WATCH or REJECT appear only when a decision record exists.</p>
           </article>
           <article>
             <Sparkles size={28} />
             <h3>Confidence & return</h3>
-            <p>Confidence and expected ROI summarize the strength of the current model assessment.</p>
+            <p>Confidence and expected ROI are shown only when Exion has actually scored them. Missing values are never estimated for presentation.</p>
           </article>
           <article>
             <ShieldCheck size={28} />
             <h3>Risk first</h3>
-            <p>Risk/reward and risk score add context before any trading or investing decision.</p>
+            <p>Risk/reward and risk score remain hidden until the connected Exion assessment provides those values.</p>
           </article>
         </div>
       </section>
 
       <section className={styles.related}>
-        <span className={styles.eyebrow}>More daily analysis</span>
+        <span className={styles.eyebrow}>More market intelligence</span>
         <h2>Explore other assets monitored by Krypnova</h2>
         <div className={styles.relatedGrid}>
           {Object.entries(trackedAssets)
@@ -251,6 +295,12 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
+function isStale(value: string | null): boolean {
+  if (!value) return false;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? false : Date.now() - timestamp > STALE_AFTER_MS;
+}
+
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "recently";
@@ -266,7 +316,7 @@ function formatDate(value: string): string {
 }
 
 function formatPrice(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "Not available";
   return `$${value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: value >= 1000 ? 2 : value >= 1 ? 4 : 6,
@@ -274,25 +324,32 @@ function formatPrice(value: number | null): string {
 }
 
 function formatPercent(value: number | null): string {
-  return value === null ? "—" : `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
+  return value === null ? "Not scored" : `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
 }
 
 function formatSignedPercent(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "Not available";
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
 function formatRatio(value: number | null): string {
-  return value === null ? "—" : `${value.toFixed(2)} : 1`;
+  return value === null ? "Not scored" : `${value.toFixed(2)} : 1`;
 }
 
 function formatScore(value: number | null): string {
-  return value === null ? "—" : `${Math.round(value)} / 100`;
+  return value === null ? "Not scored" : `${Math.round(value)} / 100`;
+}
+
+function formatVolume(value: number | null): string {
+  if (value === null) return "Not available";
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value);
 }
 
 function formatPair(value: string): string {
   if (value.includes("/")) return value;
   if (value.includes("-")) return value.replace("-", "/");
+  const kraken = value.match(/^X([A-Z0-9]{2,})Z(USD|EUR|GBP|JPY|CAD)$/);
+  if (kraken) return `${kraken[1] === "XBT" ? "BTC" : kraken[1]}/${kraken[2]}`;
   const quote = ["USDT", "USDC", "USD", "EUR"].find((q) => value.endsWith(q));
   return quote ? `${value.slice(0, -quote.length)}/${quote}` : value;
 }
