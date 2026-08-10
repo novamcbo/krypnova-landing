@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BrainCircuit, RefreshCw, ShieldCheck } from "lucide-react";
+import DailyAnalysisGrid from "@/app/components/DailyAnalysisGrid";
 import type { PublicMarketSignal, PublicSignalsResponse } from "@/lib/signal-types";
 import { pathForLocale, type Locale } from "@/lib/i18n";
 import styles from "@/app/markets/markets.module.css";
@@ -40,37 +41,40 @@ export default function LiveSignals({ locale = "en" }: { locale?: Locale }) {
   }, [refresh]);
 
   return (
-    <section className={styles.signalSection} aria-live="polite">
-      <div className={styles.signalHeader}>
-        <div>
-          <span className={styles.eyebrow}>{t.powered}</span>
-          <h2>{t.title}{!data?.stale && <span className={styles.liveBadge}><span className={styles.liveDot} /> LIVE</span>}</h2>
-          <p>{t.intro}</p>
+    <>
+      <DailyAnalysisGrid locale={locale} />
+      <section className={styles.signalSection} aria-live="polite">
+        <div className={styles.signalHeader}>
+          <div>
+            <span className={styles.eyebrow}>{t.powered}</span>
+            <h2>{t.title}{!data?.stale && <span className={styles.liveBadge}><span className={styles.liveDot} /> LIVE</span>}</h2>
+            <p>{t.intro}</p>
+          </div>
+          <button className={styles.refreshButton} onClick={() => void refresh()} disabled={loading}><RefreshCw size={16} className={loading ? styles.spinning : undefined} /> {t.refresh}</button>
         </div>
-        <button className={styles.refreshButton} onClick={() => void refresh()} disabled={loading}><RefreshCw size={16} className={loading ? styles.spinning : undefined} /> {t.refresh}</button>
-      </div>
 
-      {data?.stats && (
-        <div className={styles.statsRow}>
-          <span><strong>{data.stats.decisionsLast24h.toLocaleString(locale)}</strong> {t.decisions}</span>
-          <span><strong>{data.stats.assetsMonitored}</strong> {t.assets}</span>
-          {data.stats.lastDecisionAt && <span>{t.last} <strong>{formatRelative(data.stats.lastDecisionAt, locale)}</strong></span>}
+        {data?.stats && (
+          <div className={styles.statsRow}>
+            <span><strong>{data.stats.decisionsLast24h.toLocaleString(locale)}</strong> {t.decisions}</span>
+            <span><strong>{data.stats.assetsMonitored}</strong> {t.assets}</span>
+            {data.stats.lastDecisionAt && <span>{t.last} <strong>{formatRelative(data.stats.lastDecisionAt, locale)}</strong></span>}
+          </div>
+        )}
+
+        {loading ? (
+          <div className={styles.signalGrid}>{Array.from({ length: 4 }).map((_, index) => <div className={styles.skeletonCard} key={index} />)}</div>
+        ) : data?.signals.length ? (
+          <div className={styles.signalGrid}>{data.signals.map((signal) => <SignalCard signal={signal} locale={locale} key={`${signal.exchange}-${signal.symbol}`} />)}</div>
+        ) : (
+          <div className={styles.emptyState}><BrainCircuit size={34} /><h3>{t.monitoring}</h3><p>{data?.message ?? t.none}</p></div>
+        )}
+
+        <div className={styles.disclosureRow}>
+          <span><ShieldCheck size={16} /> {t.paper}</span>
+          <span>{t.updated} {data ? formatRelative(data.generatedAt, locale) : "now"}{data?.stale ? ` · ${t.delayed}` : ` · ${t.auto}`}</span>
         </div>
-      )}
-
-      {loading ? (
-        <div className={styles.signalGrid}>{Array.from({ length: 4 }).map((_, index) => <div className={styles.skeletonCard} key={index} />)}</div>
-      ) : data?.signals.length ? (
-        <div className={styles.signalGrid}>{data.signals.map((signal) => <SignalCard signal={signal} locale={locale} key={`${signal.exchange}-${signal.symbol}`} />)}</div>
-      ) : (
-        <div className={styles.emptyState}><BrainCircuit size={34} /><h3>{t.monitoring}</h3><p>{data?.message ?? t.none}</p></div>
-      )}
-
-      <div className={styles.disclosureRow}>
-        <span><ShieldCheck size={16} /> {t.paper}</span>
-        <span>{t.updated} {data ? formatRelative(data.generatedAt, locale) : "now"}{data?.stale ? ` · ${t.delayed}` : ` · ${t.auto}`}</span>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 
