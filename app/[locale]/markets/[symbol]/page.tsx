@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SymbolAnalysisContent, { assetFromSlug, seoTitle, trackedAssets } from "../../../markets/[symbol]/SymbolAnalysisContent";
-import { isLocalizedLocale, pathForLocale, type LocalizedLocale } from "@/lib/i18n";
+import { alternateLanguages, isLocalizedLocale, pathForLocale, type LocalizedLocale } from "@/lib/i18n";
 
 export const revalidate = 60;
 
@@ -24,14 +24,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const locale = resolveLocale(params.locale);
   const asset = assetFromSlug(params.symbol);
   const knownAsset = Boolean(trackedAssets[params.symbol.toLowerCase()]);
-  const canonical = pathForLocale(`/markets/${params.symbol.toLowerCase()}`, locale);
+  const basePath = `/markets/${params.symbol.toLowerCase()}`;
+  const canonical = pathForLocale(basePath, locale);
   const title = seoTitle(locale, asset.name, asset.symbol);
   const description = descriptionFor(locale, asset.name, asset.symbol);
 
   return {
     title: { absolute: `${title} | Krypnova` },
     description,
-    alternates: { canonical },
+    alternates: { canonical, languages: alternateLanguages(basePath) },
     robots: knownAsset ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       type: "article",
@@ -47,5 +48,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default function LocalizedSymbolPage({ params }: PageProps) {
   const locale = resolveLocale(params.locale);
+  if (!trackedAssets[params.symbol.toLowerCase()]) notFound();
   return <SymbolAnalysisContent symbolSlug={params.symbol} locale={locale} />;
 }

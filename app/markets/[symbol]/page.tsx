@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import SymbolAnalysisContent, { assetFromSlug, seoTitle, trackedAssets } from "./SymbolAnalysisContent";
+import { alternateLanguages } from "@/lib/i18n";
 
 export const revalidate = 60;
 
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: { canonical, languages: alternateLanguages(canonical) },
     robots: knownAsset ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: { type: "article", url: `${siteUrl}${canonical}`, title: `${title} | Krypnova`, description, images: ["/krypnova-logo.jpeg"] },
     twitter: { card: "summary_large_image", title: `${title} | Krypnova`, description, images: ["/krypnova-logo.jpeg"] },
@@ -25,5 +27,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default function SymbolPage({ params }: PageProps) {
+  if (!trackedAssets[params.symbol.toLowerCase()]) notFound();
   return <SymbolAnalysisContent symbolSlug={params.symbol} locale="en" />;
 }

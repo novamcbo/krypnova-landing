@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isLocale, isLocalizedLocale, pathForLocale, type Locale } from "@/lib/i18n";
+import { isLocalizedLocale, type Locale } from "@/lib/i18n";
 
 const COOKIE_NAME = "krypnova_locale";
 const PUBLIC_FILE = /\.[^/]+$/;
@@ -21,15 +21,6 @@ export function middleware(request: NextRequest) {
   const firstSegment = pathname.split("/").filter(Boolean)[0];
   const explicitLocale: Locale =
     firstSegment && isLocalizedLocale(firstSegment) ? firstSegment : "en";
-
-  if (explicitLocale === "en") {
-    const cookieLocale = request.cookies.get(COOKIE_NAME)?.value;
-    if (cookieLocale && isLocale(cookieLocale) && cookieLocale !== "en") {
-      const url = request.nextUrl.clone();
-      url.pathname = pathForLocale(pathname, cookieLocale);
-      return NextResponse.redirect(url);
-    }
-  }
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-krypnova-locale", explicitLocale);
