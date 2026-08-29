@@ -14,7 +14,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const knownAsset = Boolean(trackedAssets[params.symbol.toLowerCase()]);
   const canonical = `/markets/${params.symbol.toLowerCase()}`;
   const title = seoTitle("en", asset.name, asset.symbol);
-  const description = `${asset.name} (${asset.symbol}) price, market analysis, trading signals and market outlook from Krypnova. View live chart context and Exion intelligence refreshed throughout the day.`;
+  const description = asset.symbol === "XRP"
+    ? "Track XRP price, XRP signals, market insights and sentiment analysis with Krypnova. See live chart context and Exion AI risk intelligence refreshed throughout the day."
+    : `${asset.name} (${asset.symbol}) price, market analysis, trading signals and market outlook from Krypnova. View live chart context and Exion intelligence refreshed throughout the day.`;
 
   return {
     title,

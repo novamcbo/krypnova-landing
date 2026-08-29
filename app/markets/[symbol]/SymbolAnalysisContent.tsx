@@ -32,8 +32,57 @@ export function seoTitle(locale: Locale, name: string, symbol: string): string {
   if (locale === "es") return `${label} Análisis Hoy – Precio, Señales y Perspectiva del Mercado`;
   if (locale === "pt") return `${label} Análise Hoje – Preço, Sinais e Perspectiva de Mercado`;
   if (locale === "fr") return `${label} Analyse Aujourd’hui – Prix, Signaux et Perspectives du Marché`;
+  if (symbol === "XRP") return "XRP Analysis Today – Signals, Sentiment & Market Outlook";
   return `${label} Analysis Today – Price, Signals & Market Outlook`;
 }
+
+const xrpInsightCopy: Record<Locale, {
+  eyebrow: string; title: string;
+  signalsTitle: string; signalsText: string;
+  insightsTitle: string; insightsText: string;
+  sentimentTitle: string; sentimentText: string;
+}> = {
+  en: {
+    eyebrow: "XRP market intelligence",
+    title: "XRP signals, insights and sentiment analysis",
+    signalsTitle: "XRP signals",
+    signalsText: "Krypnova separates live XRP market context from a scored Exion decision. MONITORING is not presented as a buy or sell signal; LONG, SHORT, WATCH or REJECT appears only when a decision record exists.",
+    insightsTitle: "XRP insights",
+    insightsText: "Price action, momentum, volatility, liquidity and the latest available Exion assessment are shown together so you can evaluate the current XRP market environment with clearer context.",
+    sentimentTitle: "XRP sentiment analysis",
+    sentimentText: "Sentiment is interpreted alongside market structure and risk. A positive or negative move alone does not create a trade call, and confidence metrics appear only when Exion publishes a scored setup.",
+  },
+  es: {
+    eyebrow: "Inteligencia de mercado de XRP",
+    title: "Señales, perspectivas y análisis de sentimiento de XRP",
+    signalsTitle: "Señales de XRP",
+    signalsText: "Krypnova separa el contexto de mercado de XRP de una decisión puntuada de Exion. MONITOREANDO no se presenta como una señal de compra o venta; LONG, SHORT, WATCH o REJECT solo aparece cuando existe un registro de decisión.",
+    insightsTitle: "Perspectivas de XRP",
+    insightsText: "El precio, el momentum, la volatilidad, la liquidez y la evaluación disponible de Exion se muestran juntos para analizar el entorno actual de XRP con mayor contexto.",
+    sentimentTitle: "Análisis de sentimiento de XRP",
+    sentimentText: "El sentimiento se interpreta junto con la estructura y el riesgo del mercado. Un movimiento positivo o negativo por sí solo no genera una operación, y la confianza aparece únicamente cuando Exion publica un setup puntuado.",
+  },
+  pt: {
+    eyebrow: "Inteligência de mercado de XRP",
+    title: "Sinais, insights e análise de sentimento de XRP",
+    signalsTitle: "Sinais de XRP",
+    signalsText: "A Krypnova separa o contexto de mercado de XRP de uma decisão pontuada pela Exion. MONITORANDO não é apresentado como sinal de compra ou venda; LONG, SHORT, WATCH ou REJECT só aparece quando existe um registro de decisão.",
+    insightsTitle: "Insights de XRP",
+    insightsText: "Preço, momentum, volatilidade, liquidez e a avaliação disponível da Exion aparecem juntos para analisar o ambiente atual de XRP com mais contexto.",
+    sentimentTitle: "Análise de sentimento de XRP",
+    sentimentText: "O sentimento é interpretado junto com a estrutura e o risco do mercado. Um movimento positivo ou negativo isolado não gera uma operação, e a confiança só aparece quando a Exion publica um setup pontuado.",
+  },
+  fr: {
+    eyebrow: "Intelligence de marché XRP",
+    title: "Signaux, perspectives et analyse du sentiment XRP",
+    signalsTitle: "Signaux XRP",
+    signalsText: "Krypnova sépare le contexte de marché XRP d'une décision notée par Exion. SURVEILLANCE n'est pas présenté comme un signal d'achat ou de vente ; LONG, SHORT, WATCH ou REJECT apparaît uniquement lorsqu'une décision existe.",
+    insightsTitle: "Perspectives XRP",
+    insightsText: "Le prix, le momentum, la volatilité, la liquidité et la dernière évaluation Exion disponible sont réunis pour analyser l'environnement actuel de XRP avec davantage de contexte.",
+    sentimentTitle: "Analyse du sentiment XRP",
+    sentimentText: "Le sentiment est interprété avec la structure et le risque du marché. Un mouvement positif ou négatif ne suffit pas à générer une opération, et la confiance apparaît uniquement lorsqu'Exion publie un setup noté.",
+  },
+};
 
 const copy: Record<Locale, {
   badge: string; latest: string; read: (s: string) => string; lead: (n: string) => string;
@@ -159,6 +208,7 @@ export default async function SymbolAnalysisContent({ symbolSlug, locale }: { sy
       </section>
 
       <section className={styles.explainer}><div><span className={styles.eyebrow}>{t.how}</span><h2>{t.howTitle}</h2></div><div className={styles.explainerGrid}><article><BrainCircuit size={28} /><h3>{t.stateTitle}</h3><p>{t.stateText}</p></article><article><Sparkles size={28} /><h3>{t.confTitle}</h3><p>{t.confText}</p></article><article><ShieldCheck size={28} /><h3>{t.riskTitle}</h3><p>{t.riskText}</p></article></div></section>
+      {slug === "xrp" ? <XrpInsights locale={locale} /> : null}
       <section className={styles.related}><span className={styles.eyebrow}>{t.related}</span><h2>{t.relatedTitle}</h2><div className={styles.relatedGrid}>{Object.entries(trackedAssets).filter(([key]) => key !== slug).slice(0, 6).map(([key, item]) => <Link key={key} href={pathForLocale(`/markets/${key}`, locale)}><span>{item.category}</span><strong>{item.name} ({item.symbol})</strong></Link>)}</div></section>
       <section className={styles.disclosure}><ShieldCheck size={18} /><p>{t.disclosure}</p></section>
     </main>
@@ -166,6 +216,19 @@ export default async function SymbolAnalysisContent({ symbolSlug, locale }: { sy
 }
 
 function Metric({ label, value }: { label: string; value: string }) { return <div className={styles.metric}><span>{label}</span><strong>{value}</strong></div>; }
+function XrpInsights({ locale }: { locale: Locale }) {
+  const insight = xrpInsightCopy[locale];
+  return (
+    <section className={styles.explainer}>
+      <div><span className={styles.eyebrow}>{insight.eyebrow}</span><h2>{insight.title}</h2></div>
+      <div className={styles.explainerGrid}>
+        <article><BrainCircuit size={28} /><h3>{insight.signalsTitle}</h3><p>{insight.signalsText}</p></article>
+        <article><Sparkles size={28} /><h3>{insight.insightsTitle}</h3><p>{insight.insightsText}</p></article>
+        <article><ShieldCheck size={28} /><h3>{insight.sentimentTitle}</h3><p>{insight.sentimentText}</p></article>
+      </div>
+    </section>
+  );
+}
 function isStale(value: string | null) { if (!value) return false; const ts = Date.parse(value); return !Number.isNaN(ts) && Date.now() - ts > STALE_AFTER_MS; }
 function formatDate(value: string, locale: string) { const d = new Date(value); return Number.isNaN(d.getTime()) ? value : new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC", timeZoneName: "short" }).format(d); }
 function formatPrice(value: number | null, locale: string) { if (value === null) return "—"; return `$${value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: value >= 1000 ? 2 : value >= 1 ? 4 : 6 })}`; }
